@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">OpenGLTest</string>
+    <string name="volume_up">Vol+</string>
+    <string name="volume_down">Vol-</string>
+    <string name="zoom_out">Zoom+</string>
+    <string name="zoom_in">Zoom-</string>
+
+    <string name="settings_licence">设置Licence</string>
+    <string name="input_video_uri">请输入网址</string>
+    <string name="use_bitmap">使用图片</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="120dp"
+              android:layout_height="120dp"
+              android:id="@+id/video_item_root">
+
+    <ImageView
+        android:id="@+id/video_item_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:srcCompat="@mipmap/ic_launcher"/>
+
+    <TextView
+        android:id="@+id/video_item_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="TextView"
+        android:layout_gravity="bottom"
+        android:textColor="#ffffffff"
+        android:textSize="15sp"
+        android:background="#70000000"/>
+</FrameLayout>
