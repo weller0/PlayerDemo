@@ -19,7 +19,7 @@ GLboolean onSettingsChanged(T *pObj, func p, P1 sm, P2 rr, P3 cs) {
 }
 
 void Bean::setSettingsBean(GLRenderer *renderer, Transform *transform, SettingsBean bean) {
-    LOGD("[bean:setSettingsBean:cb]last bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
+    LOGI("[bean:setSettingsBean:cb]last bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
          mSettingsBean->isLeft, mSettingsBean->isUseBitmap, mSettingsBean->mShowMode,
          mSettingsBean->mResolutionRatio, mSettingsBean->mCtrlStyle);
 
@@ -36,13 +36,13 @@ void Bean::setSettingsBean(GLRenderer *renderer, Transform *transform, SettingsB
     onSettingsChanged(renderer, &GLRenderer::onSettingsChanged, lastSM, lastRR, lastCS);
     onSettingsChanged(transform, &Transform::onSettingsChanged, lastSM, lastRR, lastCS);
 
-    LOGD("[bean:setSettingsBean:cb]curr bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
+    LOGI("[bean:setSettingsBean:cb]curr bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
          mSettingsBean->isLeft, mSettingsBean->isUseBitmap, mSettingsBean->mShowMode,
          mSettingsBean->mResolutionRatio, mSettingsBean->mCtrlStyle);
 }
 
 void Bean::setSettingsBean(SettingsBean bean) {
-    LOGD("[bean:setSettingsBean]last bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
+    LOGI("[bean:setSettingsBean]last bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
          mSettingsBean->isLeft, mSettingsBean->isUseBitmap, mSettingsBean->mShowMode,
          mSettingsBean->mResolutionRatio, mSettingsBean->mCtrlStyle);
 
@@ -52,13 +52,13 @@ void Bean::setSettingsBean(SettingsBean bean) {
     mSettingsBean->mCtrlStyle = bean.mCtrlStyle;
     mSettingsBean->mResolutionRatio = bean.mResolutionRatio;
 
-    LOGD("[bean:setSettingsBean]curr bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
+    LOGI("[bean:setSettingsBean]curr bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
          mSettingsBean->isLeft, mSettingsBean->isUseBitmap, mSettingsBean->mShowMode,
          mSettingsBean->mResolutionRatio, mSettingsBean->mCtrlStyle);
 }
 
 void Bean::setTransformBean(TransformBean bean) {
-    LOGD("[bean:setTransformBean]last bean degree(%f, %f, %f), zoom=%f",
+    LOGI("[bean:setTransformBean]last bean degree(%f, %f, %f), zoom=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov);
     if (mTransformBean->degreeX != bean.degreeX) {
@@ -74,13 +74,13 @@ void Bean::setTransformBean(TransformBean bean) {
     if (mTransformBean->fov != bean.fov) {
         mTransformBean->fov = bean.fov;
     }
-    LOGD("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f",
+    LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov);
 }
 
 void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov) {
-    LOGD("[bean:setTransformBean]last bean degree(%f, %f, %f), zoom=%f",
+    LOGI("[bean:setTransformBean]last bean degree(%f, %f, %f), zoom=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov);
     if (mTransformBean->degreeX != rx) {
@@ -96,7 +96,7 @@ void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov) {
     if (mTransformBean->fov != fov) {
         mTransformBean->fov = fov;
     }
-    LOGD("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f",
+    LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov);
 }

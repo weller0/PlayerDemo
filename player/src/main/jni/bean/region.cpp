@@ -120,7 +120,7 @@ void Region::setFov(GLfloat fovValue, GLfloat ratio) {
         degreeY->maxActualValue = degreeY->maxSetUpValue - fov->value / 2;
         degreeY->minActualValue = degreeY->minSetUpValue + fov->value / 2;
     }
-    LOGE("[region:setFov]max x(%f, %f), y(%f, %f).",
+    LOGD("[region:setFov]max x(%f, %f), y(%f, %f).",
          degreeX->minActualValue, degreeX->maxActualValue,
          degreeY->minActualValue, degreeY->maxActualValue);
 }

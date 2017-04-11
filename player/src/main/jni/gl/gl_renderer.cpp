@@ -1,7 +1,7 @@
 #include "gl/gl_renderer.h"
 
 GLRenderer::GLRenderer(TransformBean *transformBean, SettingsBean *settingsBean) {
-    LOGD("[GLRenderer] +");
+    LOGI("[GLRenderer] +");
     mSettingsBean = settingsBean;
     pBeanProcess = new GLBean();
     pBeanProcess->init();
@@ -16,11 +16,11 @@ GLRenderer::~GLRenderer() {
     delete pBeanProcess;
     pBeanDisplay->clear();
     delete pBeanDisplay;
-    LOGD("[GLRenderer] -");
+    LOGI("[GLRenderer] -");
 }
 
 GLint GLRenderer::onSurfaceCreated() {
-    LOGD("[GLRenderer:onSurfaceCreated]");
+    LOGI("[GLRenderer:onSurfaceCreated]");
     prepareProcessBuffer();
     prepareDisplayBuffer();
     loadShader();
@@ -49,7 +49,7 @@ GLint GLRenderer::onSurfaceCreated() {
 }
 
 void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
-    LOGD("[GLRenderer:onSurfaceChanged]view size(%d, %d)", w, h);
+    LOGI("[GLRenderer:onSurfaceChanged]view size(%d, %d)", w, h);
     mWindowWidth = w;
     mWindowHeight = h;
     pBeanProcess->pMatrix->perspective(45, (GLfloat) w / (GLfloat) h, 0.1, 100);
@@ -80,7 +80,7 @@ void GLRenderer::onDrawFrame(Bitmap *bmp) {
 
 void GLRenderer::loadShader() {
     pBeanDisplay->mProgramHandle = createProgram(gRectVertexShader, gRectFragmentShader);
-    LOGD("[GLRenderer:loadShader]pBeanDisplay->mProgramHandle=%d", pBeanDisplay->mProgramHandle);
+    LOGI("[GLRenderer:loadShader]pBeanDisplay->mProgramHandle=%d", pBeanDisplay->mProgramHandle);
 }
 
 void GLRenderer::configTexture(GLuint w, GLuint h) {
@@ -109,7 +109,7 @@ void GLRenderer::configTexture(GLuint w, GLuint h) {
 }
 
 void GLRenderer::prepareDisplayBuffer() {
-    LOGD("[GLRenderer:prepareDisplayBuffer]");
+    LOGI("[GLRenderer:prepareDisplayBuffer]");
     pBeanDisplay->pTextureBuffer->updateBuffer((GLfloat *) rectTexture, sizeof(rectTexture),
                                                sizeof(rectTexture[0]), 2);
     pBeanDisplay->pVertexBuffer->updateBuffer((GLfloat *) rectVertex, sizeof(rectVertex),
@@ -123,16 +123,16 @@ void GLRenderer::prepareProcessBuffer() {
 GLboolean GLRenderer::onSettingsChanged(GLuint sm, GLuint rr, GLuint cs) {
     GLboolean result = GL_FALSE;
     if (sm != mSettingsBean->mShowMode) {
-        LOGD("[Picture:onSettingsChanged]mShowMode is changed");
+        LOGI("[Picture:onSettingsChanged]mShowMode is changed");
         prepareProcessBuffer();
-        prepareDisplayBuffer();
+//        prepareDisplayBuffer();
         result = GL_TRUE;
     }
     if (rr != mSettingsBean->mResolutionRatio) {
-        LOGD("[Picture:onSettingsChanged]mResolutionRatio is changed");
+        LOGI("[Picture:onSettingsChanged]mResolutionRatio is changed");
     }
     if (cs != mSettingsBean->mCtrlStyle) {
-        LOGD("[Picture:onSettingsChanged]mCtrlStyle is changed");
+        LOGI("[Picture:onSettingsChanged]mCtrlStyle is changed");
     }
     return result;
 }

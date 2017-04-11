@@ -63,7 +63,7 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeSetSettingsBean(JNIEnv *env,
                                                                      jobject obj,
                                                                      jobject bean) {
-    LOGD("[jni_api]setSettingsBean");
+    LOGI("[jni_api]setSettingsBean");
     mBean->setSettingsBean(pGLDisplay, mTransform, cpp2JavaForSettingsBean(env, bean));
 }
 
@@ -88,7 +88,7 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
 
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
                                                                 jobject obj) {
-    LOGD("[jni_api]release");
+    LOGI("[jni_api]release");
     if (pGLDisplay != NULL) {
         delete pGLDisplay;
     }
@@ -111,7 +111,7 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnTouch(JNIEnv *env,
                                                                  jfloat y1,
                                                                  jfloat x2,
                                                                  jfloat y2) {
-    //LOGD("onTouch action=%d, count=%d, 1(%f, %f), 2(%f, %f)", action, pointCount, x1, y1, x2, y2);
+    //LOGI("onTouch action=%d, count=%d, 1(%f, %f), 2(%f, %f)", action, pointCount, x1, y1, x2, y2);
     mTransform->onTouch(action, pointCount, x1, y1, x2, y2);
     return false;
 }

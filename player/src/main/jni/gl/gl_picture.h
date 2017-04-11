@@ -9,6 +9,7 @@
 #include "gl/gl_renderer.h"
 #include "gl/gl_bitmap.h"
 #include "bean/bean_base.h"
+#include "file/file.h"
 #include "log.h"
 
 const char gPicVertexShader[] =
@@ -136,6 +137,7 @@ protected:
 
 private:
     GLboolean bFirstFrame;
+    SettingsBean *mSettingsBean;
 };
 
 #endif //GL_PICTURE_H

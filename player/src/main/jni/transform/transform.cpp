@@ -94,15 +94,15 @@ void Transform::reset() {
 GLboolean Transform::onSettingsChanged(GLuint sm, GLuint rr, GLuint cs) {
     GLboolean result = GL_FALSE;
     if (sm != mSettingsBean->mShowMode) {
-        LOGD("[Transform:onSettingsChanged]mShowMode is changed");
+        LOGI("[Transform:onSettingsChanged]mShowMode is changed");
         setDefaultRegion(mSettingsBean->mShowMode);
         result = GL_TRUE;
     }
     if (rr != mSettingsBean->mResolutionRatio) {
-        LOGD("[Transform:onSettingsChanged]mResolutionRatio is changed");
+        LOGI("[Transform:onSettingsChanged]mResolutionRatio is changed");
     }
     if (cs != mSettingsBean->mCtrlStyle) {
-        LOGD("[Transform:onSettingsChanged]mCtrlStyle is changed");
+        LOGI("[Transform:onSettingsChanged]mCtrlStyle is changed");
     }
     return result;
 }

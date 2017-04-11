@@ -95,7 +95,7 @@ int AES::InvCipher_server(const char *lisense,
         free(key);
     }
     else {
-        LOGD("android_ID format error!");
+        LOGI("android_ID format error!");
         return -2;
     }
     //2. 用 Android ID 解密 密钥B
@@ -125,7 +125,7 @@ int AES::InvCipher_server(const char *lisense,
     if (len == 16) {
         setKey((unsigned char *) mingwen);
     } else {
-        LOGD("KEY_B format error!");
+        LOGI("KEY_B format error!");
         return -2;
     }
     free(mingwen);
@@ -177,7 +177,7 @@ int AES::InvCipher_server(const char *lisense,
 //    }
 //    else
 //    {
-//        LOGD("Lisense format error!");
+//        LOGI("Lisense format error!");
 //        return -1;
 //    }
 //    Bm53Cipher(mingwen, ciphertext_0);
@@ -189,7 +189,7 @@ int AES::InvCipher_server(const char *lisense,
 //    }
 //    else
 //    {
-//        LOGD("android_ID format error!");
+//        LOGI("android_ID format error!");
 //        return -2;
 //    }
 //    Bm53Cipher(mingwen, ciphertext_1);
@@ -217,7 +217,7 @@ int AES::InvCipher_server(const char *lisense,
 //    }
 //    else
 //    {
-//        LOGD("Lisense format error!");
+//        LOGI("Lisense format error!");
 //        return -1;
 //    }
 //    Bm53Cipher(mingwen, ciphertext_0);
@@ -236,7 +236,7 @@ int AES::InvCipher_server(const char *lisense,
 //    }
 //    else
 //    {
-//        LOGD("android_ID format error!");
+//        LOGI("android_ID format error!");
 //        return -2;
 //    }
 //    return 0;
