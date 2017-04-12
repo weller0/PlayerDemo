@@ -1,15 +1,17 @@
 #include "bean/float_buffer.h"
 
 FloatBuffer::FloatBuffer() {
-    pBuffer = (_FloatBuffer **) malloc(3 * sizeof(_FloatBuffer));
     bufCount = 0;
+    pBuffer = (_FloatBuffer **) malloc(3 * sizeof(_FloatBuffer));
 }
 
 FloatBuffer::~FloatBuffer() {
-    for (GLuint i = 0; i < bufCount; i++) {
-        delete pBuffer[i];
+    if(pBuffer != NULL) {
+        for (GLuint i = 0; i < bufCount; i++) {
+            delete pBuffer[i];
+        }
+        delete pBuffer;
     }
-    delete pBuffer;
 }
 
 void FloatBuffer::setBuffer(_FloatBuffer *buffer) {
@@ -28,6 +30,11 @@ GLuint FloatBuffer::getSize() {
 
 void FloatBuffer::updateBuffer(GLfloat *buf, GLuint totalSize,
                                GLuint unitSize, GLuint unitPointSize) {
+    if(pBuffer != NULL) {
+        for (GLuint i = 0; i < bufCount; i++) {
+            delete pBuffer[i];
+        }
+    }
     bufCount = 0;
     for (GLuint i = 0; i < totalSize / unitSize; i++) {
         _FloatBuffer *buffer = new _FloatBuffer();

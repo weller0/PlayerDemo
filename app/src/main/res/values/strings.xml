@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OpenGLTest</string>
+    <string name="app_name">PlayerDemo</string>
     <string name="volume_up">Vol+</string>
     <string name="volume_down">Vol-</string>
     <string name="zoom_out">Zoom+</string>

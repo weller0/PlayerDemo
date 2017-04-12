@@ -7,6 +7,7 @@
 
 #include "gl/gl_renderer.h"
 #include "bean/bean_base.h"
+#include "file/file.h"
 #include "log.h"
 
 const char gVideoVertexShader[] =
@@ -86,6 +87,8 @@ protected:
     void loadShader();
 
     void prepareProcessBuffer();
+
+    SettingsBean *mSettingsBean;
 };
 
 #endif //GL_VIDEO_H

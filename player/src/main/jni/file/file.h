@@ -7,7 +7,7 @@
 #include <math.h>
 #include "log.h"
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 1024
 
 class File {
 public:
