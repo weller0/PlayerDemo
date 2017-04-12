@@ -73,7 +73,7 @@ public class Licence {
     }
 
     public void setLicence(Listener listener) {
-        addListener(listener);
+        mListener = listener;
         if(mHttpReturnData != null) {
             String hardId = mHttpReturnData.getHardId();
             String result1 = mHttpReturnData.getAESHardId();
@@ -239,6 +239,7 @@ public class Licence {
     }
 
     private List<Listener> mListeners = new ArrayList<>();
+    private Listener mListener;
 
     private void addListener(Listener listener) {
         if(listener != null) mListeners.add(listener);
@@ -258,6 +259,9 @@ public class Licence {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
+                if(mListener != null){
+                    mListener.onSuccess();
+                }
                 for (Listener listener : mListeners) {
                     listener.onSuccess();
                 }
@@ -269,6 +273,9 @@ public class Licence {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
+                if(mListener != null){
+                    mListener.onNetError();
+                }
                 for (Listener listener : mListeners) {
                     listener.onNetError();
                 }
@@ -280,6 +287,9 @@ public class Licence {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
+                if(mListener != null){
+                    mListener.onHardIDError();
+                }
                 for (Listener listener : mListeners) {
                     listener.onHardIDError();
                 }

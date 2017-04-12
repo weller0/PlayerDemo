@@ -1,7 +1,6 @@
 #include "security/licence.h"
 
 Licence::Licence() {
-    haveLicence = true;
 }
 
 Licence::~Licence() {
@@ -9,7 +8,7 @@ Licence::~Licence() {
 
 void Licence::getKeyH(const char *in, char *out) {
     AES *aes = new AES();
-    aes->encode(getPhoneIMEI(), out);
+    aes->encode(in, out);
     delete aes;
 }
 
@@ -21,16 +20,21 @@ void Licence::getKeyA(char *out) {
 
 GLboolean Licence::isAllow(const char *str, const char *r1, const char *r2) {
     AES *aes = new AES();
-    if (aes->InvCipher_server(str, getPhoneIMEI(), r1, r2) == 0) {
-        haveLicence = JNI_TRUE;
-    } else {
-        haveLicence = JNI_FALSE;
+    GLboolean haveLicence = GL_FALSE;
+    if(aes->InvCipher_server(str, getPhoneIMEI(), r1, r2) == 0) {
+        haveLicence = GL_TRUE;
     }
+    delete aes;
     return haveLicence;
 }
 
 char *Licence::getPhoneIMEI() {
-    char *imei = (char *) malloc(16 * sizeof(char));
+    char tmp[32];
+    char *imei = (char *) malloc(17 * sizeof(char));
     __system_property_get("ro.serialno", imei);
+    sprintf(tmp, "%s0000000000000000", imei);
+    memcpy((void *) imei, (void *) tmp, 16 * sizeof(char));
+    *(imei + 16) = 0;
+    LOGD("[Licence:getPhoneIMEI]IMEI:%s", imei);
     return imei;
 }

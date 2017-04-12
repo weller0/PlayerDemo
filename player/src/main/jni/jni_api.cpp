@@ -6,6 +6,7 @@ Transform *mTransform = NULL;
 Bean *mBean = NULL;
 
 Licence *mLicence = NULL;
+jboolean bHaveLicence = JNI_FALSE;
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
@@ -32,7 +33,7 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnSurfaceChanged(JNIEnv *en
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
                                                                  jobject obj,
                                                                  jobject bmp) {
-    if (mLicence->haveLicence) {
+    if (bHaveLicence) {
         if (bmp != NULL) {
             AndroidBitmapInfo bitmapInfo;
             int ret;
@@ -76,6 +77,7 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
     midShowMode = env->GetMethodID(clsSettingsBean, "getShowMode", "()I");
     midCtrlStyle = env->GetMethodID(clsSettingsBean, "getCtrlStyle", "()I");
     midResolutionRatio = env->GetMethodID(clsSettingsBean, "getResolutionRatio", "()I");
+    mLicence = new Licence();
     mBean = new Bean(cpp2JavaForSettingsBean(env, bean));
     mTransform = new Transform(mBean->getTransformBean(), mBean->getSettingsBean());
     if(mBean->getSettingsBean()->isUseBitmap) {
@@ -83,7 +85,6 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
     } else {
         pGLDisplay = new Video(mBean->getTransformBean(), mBean->getSettingsBean());
     }
-    mLicence = new Licence();
 }
 
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
@@ -156,5 +157,6 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
     const char *hId = env->GetStringUTFChars(hardId, &isCopy);
     const char *r1 = env->GetStringUTFChars(result1, &isCopy);
     const char *r2 = env->GetStringUTFChars(result2, &isCopy);
-    return mLicence->isAllow(hId, r1, r2);
+    bHaveLicence = mLicence->isAllow(hId, r1, r2);
+    return bHaveLicence;
 }

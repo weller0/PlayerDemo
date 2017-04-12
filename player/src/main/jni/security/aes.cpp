@@ -28,7 +28,7 @@ int AES::getKey_A(unsigned char *key) {
     while (index >= 1e-10);
     unsigned char *key_1 = (unsigned char *) malloc(21 * sizeof(unsigned char));
     if (key_1 == NULL) {
-        LOGE("getKey_A malloc 19 error! \n");
+        LOGE("[AES:getKey_A]malloc key_1 error!");
         return -1;
     }
     memset((void *) key_1, 0, 21 * sizeof(unsigned char));
@@ -45,7 +45,7 @@ int AES::encode(const char *in, char *out) {
     //设置 key
     unsigned char *key = (unsigned char *) malloc(17 * sizeof(unsigned char));
     if (key == NULL) {
-        LOGE("encode malloc key 19 error! \n");
+        LOGE("[AES:encode]malloc key error!");
         return -1;
     }
     memset((void *) key, 0, 17 * sizeof(unsigned char));
@@ -57,16 +57,15 @@ int AES::encode(const char *in, char *out) {
     int len = strlen(in);
     char *mingwen = (char *) malloc((len + 1) * sizeof(char));
     if (mingwen == NULL) {
-        LOGE("encode malloc mingwen %d error! \n", (len + 1));
+        LOGE("[AES:encode]malloc mingwen %d error!", (len + 1));
         return -1;
     }
     memset((void *) mingwen, 0, (len + 1) * sizeof(char));
     if (len == 16) {
         memcpy((void *) mingwen, (void *) in, len * sizeof(char));
-    }
-    else {
+    } else {
         free(mingwen);
-        LOGE("Encode input format error!");
+        LOGE("[AES:encode]input format error, len is %d, input:%s!", len, in);
         return -1;
     }
     Bm53Cipher(mingwen, out);
@@ -85,7 +84,7 @@ int AES::InvCipher_server(const char *lisense,
     if (len == 16) {
         unsigned char *key = (unsigned char *) malloc((len + 1) * sizeof(unsigned char));
         if (key == NULL) {
-            LOGE("InvCipher_server malloc %d error! \n", (len + 1));
+            LOGE("[AES:InvCipher_server]malloc %d error! \n", (len + 1));
             return -1;
         }
         memset((void *) key, 0, (len + 1) * sizeof(unsigned char));
@@ -95,14 +94,14 @@ int AES::InvCipher_server(const char *lisense,
         free(key);
     }
     else {
-        LOGI("android_ID format error!");
+        LOGI("[AES:InvCipher_server]android_ID format error, len is %d!", len);
         return -2;
     }
     //2. 用 Android ID 解密 密钥B
     len = strlen(ciphertext_1);
     char *miwen = (char *) malloc((len + 1) * sizeof(char));        //根据密文长度申请密文空间
     if (miwen == NULL) {
-        LOGE("InvCipher_server malloc miwen %d error! \n", (len + 1));
+        LOGE("[AES:InvCipher_server]malloc miwen %d error! \n", (len + 1));
         return -1;
     }
     memset((void *) miwen, 0, (len + 1) * sizeof(char));
@@ -111,7 +110,7 @@ int AES::InvCipher_server(const char *lisense,
     len = 64;        //申请明文需要空间，暂时设定为 256 +1 个
     char *mingwen = (char *) malloc((len + 1) * sizeof(char));        //申请明文空间
     if (mingwen == NULL) {
-        LOGE("InvCipher_server malloc mingwen %d error! \n", (len + 1));
+        LOGE("[AES:InvCipher_server]malloc mingwen %d error! \n", (len + 1));
         return -1;
     }
     memset((void *) mingwen, 0, (len + 1) * sizeof(char));
@@ -125,7 +124,7 @@ int AES::InvCipher_server(const char *lisense,
     if (len == 16) {
         setKey((unsigned char *) mingwen);
     } else {
-        LOGI("KEY_B format error!");
+        LOGI("[AES:InvCipher_server]KEY_B format error, len is %d!", len);
         return -2;
     }
     free(mingwen);
@@ -133,7 +132,7 @@ int AES::InvCipher_server(const char *lisense,
     len = strlen(ciphertext_0);
     char *miwen_1 = (char *) malloc((len + 1) * sizeof(char));
     if (miwen_1 == NULL) {
-        LOGE("InvCipher_server malloc miwen_1 %d error! \n", (len + 1));
+        LOGE("[AES:InvCipher_server]malloc miwen_1 %d error! \n", (len + 1));
         return -1;
     }
     memset((void *) miwen_1, 0, (len + 1) * sizeof(char));
@@ -142,7 +141,7 @@ int AES::InvCipher_server(const char *lisense,
     len = 64;        //申请明文需要空间，暂时设定为 256 +1 个
     char *mingwen_1 = (char *) malloc((len + 1) * sizeof(char));        //申请明文空间
     if (mingwen_1 == NULL) {
-        LOGE("InvCipher_server malloc mingwen_1 %d error! \n", (len + 1));
+        LOGE("[AES:InvCipher_server]malloc mingwen_1 %d error! \n", (len + 1));
         return -1;
     }
     memset((void *) mingwen_1, 1, (len + 1) * sizeof(char));

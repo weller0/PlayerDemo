@@ -127,17 +127,17 @@ public class VideoScanActivity extends BaseActivity {
                             Licence.getInstance().setLicence(input, new Licence.Listener() {
                                 @Override
                                 public void onSuccess() {
-                                    L.d("VR_", "Licence is allow !!!");
+                                    L.d("VR_VideoScan", "Licence is allow !!!");
                                 }
 
                                 @Override
                                 public void onNetError() {
-                                    L.d("VR_", "Your net is wrong, please check it !!!");
+                                    L.d("VR_VideoScan", "Your net is wrong, please check it !!!");
                                 }
 
                                 @Override
                                 public void onHardIDError() {
-                                    L.d("VR_", "Your licence is wrong, please check it !!!");
+                                    L.d("VR_VideoScan", "Your licence is wrong, please check it !!!");
                                 }
                             });
                         }

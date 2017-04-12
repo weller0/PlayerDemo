@@ -11,8 +11,6 @@
 
 class Licence {
 public:
-    GLboolean haveLicence;
-
     Licence();
 
     ~Licence();
