@@ -40,7 +40,7 @@ void Video::prepareProcessBuffer() {
             fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_3";
             break;
         case SM_ORIGINAL:
-            fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_3";
+            fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_4";
             break;
         default:
             fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_1";
@@ -70,7 +70,7 @@ void Video::prepareProcessBuffer() {
             fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_3";
             break;
         case SM_ORIGINAL:
-            fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_2";
+            fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_4";
             break;
         default:
             fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_1";

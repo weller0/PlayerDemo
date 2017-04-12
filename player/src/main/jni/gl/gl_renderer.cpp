@@ -208,19 +208,19 @@ void GLRenderer::draw(GLBean *glBean) {
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
         }
-        if (glBean->mProjectionHandle != 0) {
+        if (glBean->mProjectionHandle != -1) {
             glUniformMatrix4fv(glBean->mProjectionHandle, 1, GL_FALSE,
                                glBean->pMatrix->getProjectionMatrix());
         }
-        if (glBean->mCameraHandle != 0) {
+        if (glBean->mCameraHandle != -1) {
             glUniformMatrix4fv(glBean->mCameraHandle, 1, GL_FALSE,
                                glBean->pMatrix->getCameraMatrix());
         }
-        if (glBean->mTransformHandle != 0) {
+        if (glBean->mTransformHandle != -1) {
             glUniformMatrix4fv(glBean->mTransformHandle, 1, GL_FALSE,
                                glBean->pMatrix->getTransformMatrix());
         }
-        if (glBean->mLightHandle != 0) {
+        if (glBean->mLightHandle != -1) {
             glUniform3f(glBean->mLightHandle, 1, 1, 1);
         }
         glBindTexture(glBean->eTextureTarget, glBean->mTextureId);

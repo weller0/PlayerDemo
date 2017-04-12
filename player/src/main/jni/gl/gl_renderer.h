@@ -40,9 +40,10 @@ typedef struct {
         pTransformBean = NULL;
         pMatrix = new Matrix();
         mProgramHandle = 0;
-        mProjectionHandle = 0;
-        mCameraHandle = 0;
-        mTransformHandle = 0;
+        mProjectionHandle = -1;
+        mCameraHandle = -1;
+        mTransformHandle = -1;
+        mLightHandle = -1;
         mTextureId = 0;
         eTextureTarget = GL_TEXTURE_2D;
         pVBO = NULL;
