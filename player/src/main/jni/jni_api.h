@@ -52,11 +52,11 @@ JNIEXPORT void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeResetTransform(JN
                                                                               jobject obj);
 
 // licence
-JNIEXPORT jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetKeyA(JNIEnv *,
-                                                                          jobject);
-JNIEXPORT jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetKeyH(JNIEnv *,
-                                                                          jobject,
-                                                                          jstring);
+JNIEXPORT jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeA(JNIEnv *,
+                                                                             jobject);
+JNIEXPORT jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeH(JNIEnv *,
+                                                                             jobject,
+                                                                             jstring);
 JNIEXPORT jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *,
                                                                            jobject,
                                                                            jstring,

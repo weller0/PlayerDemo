@@ -158,8 +158,8 @@ public class Licence {
             HttpReturnData mReturnData = null;
             try {
                 Map<String, String> postParams = new HashMap<>();
-                postParams.put(PARAMS_HARD_ID, mNdkLicence.getKeyH(getHardId()));
-                postParams.put(PARAMS_ANDROID_ID, mNdkLicence.getKeyA());
+                postParams.put(PARAMS_HARD_ID, mNdkLicence.getEncodeH(getHardId()));
+                postParams.put(PARAMS_ANDROID_ID, mNdkLicence.getEncodeA());
                 byte[] data = getRequestData(postParams).toString().getBytes();
 
                 URL url = new URL(URL);

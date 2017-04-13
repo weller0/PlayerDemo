@@ -5,8 +5,7 @@ GLRenderer *pGLDisplay = NULL;
 Transform *mTransform = NULL;
 Bean *mBean = NULL;
 
-Licence *mLicence = NULL;
-jboolean bHaveLicence = JNI_FALSE;
+jboolean bHaveLicence = JNI_TRUE;
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
@@ -77,10 +76,9 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
     midShowMode = env->GetMethodID(clsSettingsBean, "getShowMode", "()I");
     midCtrlStyle = env->GetMethodID(clsSettingsBean, "getCtrlStyle", "()I");
     midResolutionRatio = env->GetMethodID(clsSettingsBean, "getResolutionRatio", "()I");
-    mLicence = new Licence();
     mBean = new Bean(cpp2JavaForSettingsBean(env, bean));
     mTransform = new Transform(mBean->getTransformBean(), mBean->getSettingsBean());
-    if(mBean->getSettingsBean()->isUseBitmap) {
+    if (mBean->getSettingsBean()->isUseBitmap) {
         pGLDisplay = new Picture(mBean->getTransformBean(), mBean->getSettingsBean());
     } else {
         pGLDisplay = new Video(mBean->getTransformBean(), mBean->getSettingsBean());
@@ -98,9 +96,6 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
     }
     if (mBean != NULL) {
         delete mBean;
-    }
-    if (mLicence != NULL) {
-        delete mLicence;
     }
 }
 
@@ -131,20 +126,24 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeResetTransform(JNIEnv *env,
     mTransform->reset();
 }
 
-jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetKeyA(JNIEnv *env,
-                                                                jobject thiz) {
+jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeA(JNIEnv *env,
+                                                                   jobject thiz) {
     char ciphertext_0[128] = {0};
-    mLicence->getKeyA(ciphertext_0);
+    Licence *licence = new Licence();
+    licence->getEncodeA(ciphertext_0);
+    delete licence;
     return env->NewStringUTF(ciphertext_0);
 }
 
-jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetKeyH(JNIEnv *env,
-                                                                jobject thiz,
-                                                                jstring id) {
+jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeH(JNIEnv *env,
+                                                                   jobject thiz,
+                                                                   jstring id) {
     jboolean isCopy;
     const char *str = env->GetStringUTFChars(id, &isCopy);
     char ciphertext_0[128] = {0};
-    mLicence->getKeyH(str, ciphertext_0);
+    Licence *licence = new Licence();
+    licence->encode(str, ciphertext_0);
+    delete licence;
     return env->NewStringUTF(ciphertext_0);
 }
 
@@ -157,6 +156,8 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
     const char *hId = env->GetStringUTFChars(hardId, &isCopy);
     const char *r1 = env->GetStringUTFChars(result1, &isCopy);
     const char *r2 = env->GetStringUTFChars(result2, &isCopy);
-    bHaveLicence = mLicence->isAllow(hId, r1, r2);
-    return bHaveLicence;
+    Licence *licence = new Licence();
+    bHaveLicence = licence->isAllow(hId, r1, r2);
+    delete licence;
+    return JNI_TRUE;
 }

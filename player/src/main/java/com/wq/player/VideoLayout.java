@@ -53,6 +53,7 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
                 LinearLayout.LayoutParams.MATCH_PARENT);
         lp.weight = 1;
         mNoLicenceLayout = new FrameLayout(getContext());
+        mNoLicenceLayout.setVisibility(GONE);
         addView(mNoLicenceLayout, lp);
 
         mSensorCtrl = new SensorCtrl(getContext());
