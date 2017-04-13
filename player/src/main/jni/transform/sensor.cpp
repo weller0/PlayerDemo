@@ -1,5 +1,4 @@
-#include <bean/bean_base.h>
-#include "sensor.h"
+#include "transform/sensor.h"
 
 Sensor::Sensor(SettingsBean *settingsBean) {
     mSettingsBean = settingsBean;
