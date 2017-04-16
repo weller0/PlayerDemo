@@ -19,8 +19,8 @@ void Transform::setDefaultRegion(GLuint sm) {
     mRegion->setDefaultFov(FOV_MIN, FOV_MIN, FOV_DEFAULT);
     switch (sm){
         case SM_ORIGINAL:
-            mRegion->setDefaultX(-45, 45, 0);
-            mRegion->setDefaultY(-45, 45, 0);
+            mRegion->setDefaultX(0, 0, 0);
+            mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
             break;
         case SM_SPHERE_FRONT:

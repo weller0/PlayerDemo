@@ -34,17 +34,17 @@ void Picture::prepareProcessBuffer() {
     GLuint bufSize = 0;
     char *fileName = NULL;
     switch (mSettingsBean->mShowMode) {
+        case SM_ORIGINAL:
+            fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_1";
+            break;
         case SM_SPHERE_FRONT:
             fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_2";
             break;
         case SM_SPHERE_FRONT_BACK:
             fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_3";
             break;
-        case SM_ORIGINAL:
-            fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_2";
-            break;
         default:
-            fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_1";
+            fileName = (char *) "/storage/emulated/0/Movies/texcoord_buffer_4";
             break;
     }
     File *file = new File();
@@ -64,17 +64,17 @@ void Picture::prepareProcessBuffer() {
     unitSize = 0;
     bufSize = 0;
     switch (mSettingsBean->mShowMode) {
+        case SM_ORIGINAL:
+            fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_1";
+            break;
         case SM_SPHERE_FRONT:
             fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_2";
             break;
         case SM_SPHERE_FRONT_BACK:
             fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_3";
             break;
-        case SM_ORIGINAL:
-            fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_2";
-            break;
         default:
-            fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_1";
+            fileName = (char *) "/storage/emulated/0/Movies/vertex_buffer_4";
             break;
     }
     file = new File();
