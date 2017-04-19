@@ -1,11 +1,15 @@
-#include <bean/bean_base.h>
 #include "jni_api.h"
+#include "opencv2/opencv.hpp"
 
+extern "C" {
 GLRenderer *pGLDisplay = NULL;
 Transform *mTransform = NULL;
 Bean *mBean = NULL;
 
 jboolean bHaveLicence = JNI_TRUE;
+
+using namespace cv;
+using namespace std;
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
@@ -52,6 +56,11 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
             }
             AndroidBitmap_unlockPixels(env, bmp);
             bitmap->bitmapInfo = bitmapInfo;
+            Mat srcImage(bitmapInfo.width, bitmapInfo.height, CV_8UC4,
+                         (unsigned char *) bitmap->pixels);
+            Mat grayImage;
+            cvtColor(srcImage, grayImage, COLOR_BGRA2GRAY);
+            cvtColor(grayImage, srcImage, COLOR_GRAY2BGRA);
             pGLDisplay->onDrawFrame(bitmap);
             delete bitmap;
         } else {
@@ -160,4 +169,5 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
     bHaveLicence = licence->isAllow(hId, r1, r2);
     delete licence;
     return JNI_TRUE;
+}
 }
