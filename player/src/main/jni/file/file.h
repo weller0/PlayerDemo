@@ -11,13 +11,23 @@
 
 class File {
 public:
-    File();
+    File(GLchar *fileName);
 
     ~File();
+    /**
+     *
+     * buffer   :数据buffer
+     * totalSize:所有数据的个数
+     * unitSize :一个数组的数据个数
+     * size     :实际统计的数据个数
+     *
+     */
+    void getBuffer(GLfloat *buffer, GLuint *totalSize, GLuint *unitSize, GLuint *size);
+    void getBuffer(double *buffer, GLuint *totalSize, GLuint *unitSize, GLuint *size);
+    void getBufferSize(GLuint *totalSize, GLuint *unitSize);
 
-    void getBuffer(GLchar *fileName, GLfloat *buffer, GLuint *totalSize, GLuint *unitSize,
-                   GLuint *size);
-    void getBufferSize(GLchar *fileName, GLuint *totalSize, GLuint *unitSize);
+private:
+    FILE *pFile;
 };
 
 #endif //FILE_H

@@ -7,6 +7,18 @@ GLBase::GLBase() {
 GLBase::~GLBase() {
 }
 
+GLuint64 GLBase::getCurrentTimeUs() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000000 + tv.tv_usec;
+}
+
+GLuint64 GLBase::getCurrentTimeMs() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
 GLboolean GLBase::checkGLError(const char *op) {
     GLint error = glGetError();
     if (error != GL_NO_ERROR) {

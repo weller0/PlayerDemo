@@ -1,11 +1,11 @@
-#include "bean/float_buffer.h"
+#include "bean/double_buffer.h"
 
-FloatBuffer::FloatBuffer() {
+DoubleBuffer::DoubleBuffer() {
     bufCount = 0;
-    pBuffer = (_FloatBuffer **) malloc(3 * sizeof(_FloatBuffer));
+    pBuffer = (_DoubleBuffer **) malloc(3 * sizeof(_DoubleBuffer));
 }
 
-FloatBuffer::~FloatBuffer() {
+DoubleBuffer::~DoubleBuffer() {
     if(pBuffer != NULL) {
         for (GLuint i = 0; i < bufCount; i++) {
             delete pBuffer[i];
@@ -14,21 +14,21 @@ FloatBuffer::~FloatBuffer() {
     }
 }
 
-void FloatBuffer::setBuffer(_FloatBuffer *buffer) {
+void DoubleBuffer::setBuffer(_DoubleBuffer *buffer) {
     pBuffer[bufCount] = buffer;
     bufCount++;
 }
 
-_FloatBuffer *FloatBuffer::getBuffer(GLuint index) {
+_DoubleBuffer *DoubleBuffer::getBuffer(GLuint index) {
     if (index >= bufCount) index = bufCount - 1;
     return pBuffer[index];
 }
 
-GLuint FloatBuffer::getSize() {
+GLuint DoubleBuffer::getSize() {
     return bufCount;
 }
 
-void FloatBuffer::updateBuffer(GLfloat *buf, GLuint totalSize, GLuint unitSize,
+void DoubleBuffer::updateBuffer(double *buf, GLuint totalSize, GLuint unitSize,
                                GLuint unitPointSize, GLuint typeSize) {
     if(pBuffer != NULL) {
         for (GLuint i = 0; i < bufCount; i++) {
@@ -37,7 +37,7 @@ void FloatBuffer::updateBuffer(GLfloat *buf, GLuint totalSize, GLuint unitSize,
     }
     bufCount = 0;
     for (GLuint i = 0; i < totalSize / unitSize; i++) {
-        _FloatBuffer *buffer = new _FloatBuffer();
+        _DoubleBuffer *buffer = new _DoubleBuffer();
         buffer->buffer = buf + i * unitSize / typeSize;
         buffer->bufferSize = unitSize;
         buffer->pointSize = unitSize / typeSize / unitPointSize;

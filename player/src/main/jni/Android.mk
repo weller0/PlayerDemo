@@ -19,12 +19,16 @@ LOCAL_SRC_FILES     :=  file/file.cpp               \
                         transform/touch.cpp         \
                         transform/sensor.cpp        \
                         transform/transform.cpp     \
+                        compose/LaplacianBlending.cpp       \
+                        compose/mycv.cpp                    \
+                        compose/Generate_fusion_area.cpp    \
                         gl/gl_matrix.cpp            \
                         gl/gl_base.cpp              \
                         gl/gl_renderer.cpp          \
                         gl/gl_picture.cpp           \
                         gl/gl_video.cpp             \
                         bean/float_buffer.cpp       \
+                        bean/double_buffer.cpp       \
                         bean/bean.cpp               \
                         bean/region.cpp             \
                         jni_api.cpp

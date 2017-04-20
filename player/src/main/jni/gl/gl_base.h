@@ -3,6 +3,7 @@
 
 #include <GLES3/gl3.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "log.h"
 
 #define STR(s) #s
@@ -20,6 +21,10 @@ protected:
     GLuint createProgram(const char *pVertexSource, const char *pFragmentSource);
 
     GLboolean checkGLError(const char *op);
+
+    GLuint64 getCurrentTimeUs();
+
+    GLuint64 getCurrentTimeMs();
 
 private :
     GLuint _loadShader(GLenum shaderType, const char *pSource);
