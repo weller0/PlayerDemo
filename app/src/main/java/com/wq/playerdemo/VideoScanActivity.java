@@ -128,19 +128,19 @@ public class VideoScanActivity extends BaseActivity {
                                 @Override
                                 public void onSuccess() {
                                     L.d("VR_VideoScan", "Licence is allow !!!");
-                                    Toast.makeText(VideoScanActivity.this, "Licence is allow !!!", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(VideoScanActivity.this, "Licence is allow !!!", Toast.LENGTH_SHORT).show();
                                 }
 
                                 @Override
                                 public void onNetError() {
                                     L.d("VR_VideoScan", "Your net is wrong, please check it !!!");
-                                    Toast.makeText(VideoScanActivity.this, "Your net is wrong, please check it !!!", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(VideoScanActivity.this, "Your net is wrong, please check it !!!", Toast.LENGTH_SHORT).show();
                                 }
 
                                 @Override
                                 public void onHardIDError() {
                                     L.d("VR_VideoScan", "Your licence is wrong, please check it !!!");
-                                    Toast.makeText(VideoScanActivity.this, "Your licence is wrong, please check it !!!", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(VideoScanActivity.this, "Your licence is wrong, please check it !!!", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }

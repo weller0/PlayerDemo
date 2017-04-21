@@ -88,6 +88,7 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
                                                                 jobject obj) {
     LOGI("[jni_api]release");
+    bHaveLicence = JNI_FALSE;
     if (pGLDisplay != NULL) {
         delete pGLDisplay;
     }
@@ -152,13 +153,22 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
                                                                  jstring hardId,
                                                                  jstring result1,
                                                                  jstring result2) {
-    jboolean isCopy;
-    const char *hId = env->GetStringUTFChars(hardId, &isCopy);
-    const char *r1 = env->GetStringUTFChars(result1, &isCopy);
-    const char *r2 = env->GetStringUTFChars(result2, &isCopy);
-    Licence *licence = new Licence();
-    bHaveLicence = licence->isAllow(hId, r1, r2);
-    delete licence;
+    if(hardId != NULL && result1 != NULL && result2 !=NULL){
+        jboolean isCopy;
+        const char *hId = env->GetStringUTFChars(hardId, &isCopy);
+        const char *r1 = env->GetStringUTFChars(result1, &isCopy);
+        const char *r2 = env->GetStringUTFChars(result2, &isCopy);
+        Licence *licence = new Licence();
+        bHaveLicence = licence->isAllow(hId, r1, r2);
+        delete licence;
+    } else {
+        bHaveLicence = JNI_FALSE;
+    }
+    return bHaveLicence;
+}
+
+jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeHasLicence(JNIEnv *env,
+                                                                    jobject thiz) {
     return bHaveLicence;
 }
 }

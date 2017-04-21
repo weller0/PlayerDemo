@@ -130,6 +130,8 @@ void AES::Bm53InvCipher(char *input, char *output) {
             break;
         }
     }
+    free(uch_input);
+    free(uch_output);
 }
 
 unsigned char *AES::Cipher(unsigned char *input) {

@@ -62,5 +62,7 @@ JNIEXPORT jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEn
                                                                            jstring,
                                                                            jstring,
                                                                            jstring);
+JNIEXPORT jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeHasLicence(JNIEnv *,
+                                                                              jobject);
 };
 #endif //PIC_LEFT_H

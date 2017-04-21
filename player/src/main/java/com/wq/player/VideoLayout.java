@@ -297,13 +297,13 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
                 @Override
                 public void onNetError() {
                     L.d(TAG, "Your net is wrong, please check it !!!");
-                    setShowState(ShowState.Single);
+                    setShowState(ShowState.NoLicence);
                 }
 
                 @Override
                 public void onHardIDError() {
                     L.d(TAG, "Your licence is wrong, please check it !!!");
-                    setShowState(ShowState.Single);
+                    setShowState(ShowState.NoLicence);
                 }
             });
             setPlayState(PlayState.Preparing);
