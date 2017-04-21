@@ -74,27 +74,24 @@ public class Licence {
 
     public void setLicence(Listener listener) {
         mListener = listener;
-        if(mNdkLicence.hasLicence()){
+        /*if(mNdkLicence.hasLicence()){
             listenerOnSuccess();
         } else {
             listenerOnHardIDError();
-        }
-        /*if(mHttpReturnData != null) {
+        }*/
+        if(mHttpReturnData != null) {
             String hardId = mHttpReturnData.getHardId();
             String result1 = mHttpReturnData.getAESHardId();
             String result2 = mHttpReturnData.getAESMcrpty();
-            if (hardId != null && result1 != null && result2 != null) {
-                if (mNdkLicence.isAllow(getHardId(), result1, result2)) {
-                    listenerOnSuccess();
-                } else {
-                    listenerOnHardIDError();
-                }
+            if (mNdkLicence.isAllow(getHardId(), result1, result2)) {
+                listenerOnSuccess();
             } else {
                 listenerOnHardIDError();
             }
         } else {
+            mNdkLicence.isAllow(null, null, null);
             listenerOnHardIDError();
-        }*/
+        }
     }
 
     private String limitByte(String in, int size) {
