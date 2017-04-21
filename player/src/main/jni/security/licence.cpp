@@ -1,11 +1,11 @@
 #include "security/licence.h"
 
 Licence::Licence() {
-    pAes = new AES();
+//    pAes = new AES();
 }
 
 Licence::~Licence() {
-    delete pAes;
+//    delete pAes;
 }
 
 void Licence::encode(const char *in, char *out) {
@@ -20,19 +20,29 @@ void Licence::encode(const unsigned char *key, const char *in, char *out) {
     memset(keyBuffer, '\0', 17);
     memcpy(keyBuffer, key, 16);
     LOGD("[Licence:encode]key=%s", key);
-    pAes->setKey(keyBuffer);
-    free(keyBuffer);
+    AES* aes = new AES(keyBuffer, 0);
 
     int nLength = 17;
     char *inBuffer = new char[nLength];
     memset(inBuffer, '\0', nLength);
     memcpy(inBuffer, in, nLength);
-    pAes->Bm53Cipher(inBuffer, out);
+    aes->Cipher(inBuffer, out);
+
+    sprintf(out, "%s45C7A4FDE80383044E8AD790740EDFFD", out);
+
+
+    AES* aes1 = new AES(keyBuffer, 0);
+    int len = 64;
+    char *mingwen1 = (char *) malloc((len + 1) * sizeof(char));
+    memset(mingwen1, 0, (len + 1) * sizeof(char));
+    aes1->InvCipher(out, mingwen1);
 
     LOGD("[Licence:encode]in=%s", in);
     LOGD("[Licence:encode]out=%s", out);
+    LOGD("[Licence:encode]mingwen1=%s", mingwen1);
 
     delete[] inBuffer;
+    free(keyBuffer);
 }
 
 void Licence::getEncodeA(char *out) {
@@ -42,21 +52,21 @@ void Licence::getEncodeA(char *out) {
 GLboolean Licence::isAllow(const char *licence, const char *r1, const char *r2) {
     GLboolean haveLicence = GL_FALSE;
     // 使用IMEI作为Key
-    pAes->setKey((unsigned char *) getPhoneIMEI());
+    AES* aes1 = new AES((unsigned char *) getPhoneIMEI(), 0);
 
     // 解密秘钥B
-    int len = strlen(r2);
+    int len = strlen(r1);
     char *miwen1 = (char *) malloc((len + 1) * sizeof(char));
     memset(miwen1, 0, (len + 1));
-    memcpy(miwen1, r2, len * sizeof(char));
+    memcpy(miwen1, r1, len * sizeof(char));
 
-    len = 128;
+    len = 64;
     char *mingwen1 = (char *) malloc((len + 1) * sizeof(char));
     memset(mingwen1, 0, (len + 1) * sizeof(char));
-    pAes->Bm53InvCipher(miwen1, mingwen1);
+    aes1->InvCipher(miwen1, mingwen1);
 
     // 使用解密的秘钥B作为Key
-    pAes->setKey((unsigned char *) mingwen1);
+    AES* aes2 = new AES((unsigned char *) mingwen1, 0);
 
     // 解密硬件ID
     len = strlen(r1);
@@ -67,7 +77,7 @@ GLboolean Licence::isAllow(const char *licence, const char *r1, const char *r2) 
     len = 128;
     char *mingwen2 = (char *) malloc((len + 1) * sizeof(char));
     memset(mingwen2, 0, (len + 1) * sizeof(char));
-    pAes->Bm53InvCipher(miwen2, mingwen2);
+    aes2->InvCipher(miwen2, mingwen2);
 
     if (memcmp(mingwen2, licence, 16) == 0) {
         haveLicence = GL_TRUE;
@@ -83,6 +93,8 @@ GLboolean Licence::isAllow(const char *licence, const char *r1, const char *r2) 
     free(miwen2);
     free(mingwen1);
     free(mingwen2);
+    delete aes1;
+    delete aes2;
     return haveLicence;
 }
 

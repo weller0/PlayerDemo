@@ -25,7 +25,7 @@ public:
     GLboolean isAllow(const char *licence, const char *r1, const char *r2);
 
 private:
-    AES *pAes;
+//    AES *pAes;
 
     char *getPhoneIMEI();
 
