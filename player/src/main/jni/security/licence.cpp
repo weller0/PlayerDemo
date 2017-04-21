@@ -11,34 +11,78 @@ Licence::~Licence() {
 void Licence::encode(const char *in, char *out) {
     unsigned char *key = (unsigned char *) malloc(17 * sizeof(unsigned char));
     getKey(key);
-    LOGD("[Licence]key=%s", key);
-    pAes->setKey(key);
+    encode(key, in, out);
     free(key);
+}
 
-    int nLength = sizeof(in);
-    int spaceLength = 16 - (nLength % 16);
-    unsigned char* pBuffer = new unsigned char[nLength + spaceLength];
-    memset(pBuffer, '\0', nLength + spaceLength);
-    memcpy(pBuffer, in, nLength);
-    pAes->Cipher(pBuffer);
+void Licence::encode(const unsigned char *key, const char *in, char *out) {
+    unsigned char *keyBuffer = new unsigned char[17];
+    memset(keyBuffer, '\0', 17);
+    memcpy(keyBuffer, key, 16);
+    LOGD("[Licence:encode]key=%s", key);
+    pAes->setKey(keyBuffer);
+    free(keyBuffer);
 
-    // 这里需要把得到的字符数组转换成十六进制字符串
-    size_t outSize = sizeof(out);
-    memset(out, '\0', outSize);
-    Byte2Hex(pBuffer, nLength + spaceLength, out);
+    int nLength = 17;
+    char *inBuffer = new char[nLength];
+    memset(inBuffer, '\0', nLength);
+    memcpy(inBuffer, in, nLength);
+    pAes->Bm53Cipher(inBuffer, out);
 
-    LOGD("[Licence]in=%s", in);
-    LOGD("[Licence]out=%s", out);
+    LOGD("[Licence:encode]in=%s", in);
+    LOGD("[Licence:encode]out=%s", out);
 
-    delete[] pBuffer;
+    delete[] inBuffer;
 }
 
 void Licence::getEncodeA(char *out) {
     encode(getPhoneIMEI(), out);
 }
 
-GLboolean Licence::isAllow(const char *str, const char *r1, const char *r2) {
-    GLboolean haveLicence = GL_TRUE;
+GLboolean Licence::isAllow(const char *licence, const char *r1, const char *r2) {
+    GLboolean haveLicence = GL_FALSE;
+    // 使用IMEI作为Key
+    pAes->setKey((unsigned char *) getPhoneIMEI());
+
+    // 解密秘钥B
+    int len = strlen(r2);
+    char *miwen1 = (char *) malloc((len + 1) * sizeof(char));
+    memset(miwen1, 0, (len + 1));
+    memcpy(miwen1, r2, len * sizeof(char));
+
+    len = 128;
+    char *mingwen1 = (char *) malloc((len + 1) * sizeof(char));
+    memset(mingwen1, 0, (len + 1) * sizeof(char));
+    pAes->Bm53InvCipher(miwen1, mingwen1);
+
+    // 使用解密的秘钥B作为Key
+    pAes->setKey((unsigned char *) mingwen1);
+
+    // 解密硬件ID
+    len = strlen(r1);
+    char *miwen2 = (char *) malloc((len + 1) * sizeof(char));
+    memset(miwen2, 0, (len + 1));
+    memcpy(miwen2, r1, len * sizeof(char));
+
+    len = 128;
+    char *mingwen2 = (char *) malloc((len + 1) * sizeof(char));
+    memset(mingwen2, 0, (len + 1) * sizeof(char));
+    pAes->Bm53InvCipher(miwen2, mingwen2);
+
+    if (memcmp(mingwen2, licence, 16) == 0) {
+        haveLicence = GL_TRUE;
+    }
+
+    LOGD("[Licence:isAllow]licence=%s", licence);
+    LOGD("[Licence:isAllow]miwen1=%s", miwen1);
+    LOGD("[Licence:isAllow]miwen2=%s", miwen2);
+    LOGD("[Licence:isAllow]mingwen1=%s", mingwen1);
+    LOGD("[Licence:isAllow]mingwen2=%s", mingwen2);
+    LOGD("[Licence:isAllow]haveLicence=%d", haveLicence);
+    free(miwen1);
+    free(miwen2);
+    free(mingwen1);
+    free(mingwen2);
     return haveLicence;
 }
 
@@ -74,30 +118,4 @@ int Licence::getKey(unsigned char *key) {
     *(key + 16) = 0;
     free(key_1);
     return 0;
-}
-
-void Licence::Byte2Hex(const unsigned char* src, int len, char* dest) {
-    for (int i=0; i<len; ++i) {
-        sprintf(dest + i * 2, "%02X", src[i]);
-    }
-}
-
-void Licence::Hex2Byte(const char* src, int len, unsigned char* dest) {
-    int length = len / 2;
-    for (int i=0; i<length; ++i) {
-        dest[i] = Char2Int(src[i * 2]) * 16 + Char2Int(src[i * 2 + 1]);
-    }
-}
-
-int Licence::Char2Int(char c) {
-    if ('0' <= c && c <= '9') {
-        return (c - '0');
-    }
-    else if ('a' <= c && c<= 'f') {
-        return (c - 'a' + 10);
-    }
-    else if ('A' <= c && c<= 'F') {
-        return (c - 'A' + 10);
-    }
-    return -1;
 }

@@ -4,12 +4,15 @@ File::File(GLchar *fileName) {
     pFile = fopen(fileName, (char *) "r");
     if (pFile == NULL) {
         LOGE("[File]%s is not exist", fileName);
+        return;
     }
-    LOGD("[File]Loading file %s", fileName);
+    LOGI("[File]Loading file %s", fileName);
 }
 
 File::~File() {
-    fclose(pFile);
+    if(pFile != NULL) {
+        fclose(pFile);
+    }
 }
 
 void File::getBufferSize(GLuint *totalSize, GLuint *unitSize) {
@@ -28,7 +31,7 @@ void File::getBufferSize(GLuint *totalSize, GLuint *unitSize) {
         GLuint readSize = ftell(pFile);
         GLuint currSize = readSize - alreadyReadSize;
         alreadyReadSize = readSize;
-//        LOGD("tmpBuffer : %s", tmpBuffer);
+        LOGD("tmpBuffer :\n%s", tmpBuffer);
         for (GLuint i = 0; i < currSize; i++) {
             char c = *(tmpBuffer + i);
             if ((c >= '0' && c <= '9') ||

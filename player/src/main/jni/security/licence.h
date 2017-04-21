@@ -20,7 +20,9 @@ public:
 
     void encode(const char *in, char *out);
 
-    GLboolean isAllow(const char *str, const char *r1, const char *r2);
+    void encode(const unsigned char *key, const char *in, char *out);
+
+    GLboolean isAllow(const char *licence, const char *r1, const char *r2);
 
 private:
     AES *pAes;
@@ -28,12 +30,6 @@ private:
     char *getPhoneIMEI();
 
     int getKey(unsigned char *key);
-
-    void Byte2Hex(const unsigned char *src, int len, char *dest);
-
-    void Hex2Byte(const char *src, int len, unsigned char *dest);
-
-    int Char2Int(char c);
 };
 
 #endif //LICENCE_H

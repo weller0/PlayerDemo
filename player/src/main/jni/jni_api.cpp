@@ -5,7 +5,7 @@ GLRenderer *pGLDisplay = NULL;
 Transform *mTransform = NULL;
 Bean *mBean = NULL;
 
-jboolean bHaveLicence = JNI_TRUE;
+jboolean bHaveLicence = JNI_FALSE;
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
@@ -159,6 +159,6 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
     Licence *licence = new Licence();
     bHaveLicence = licence->isAllow(hId, r1, r2);
     delete licence;
-    return JNI_TRUE;
+    return bHaveLicence;
 }
 }

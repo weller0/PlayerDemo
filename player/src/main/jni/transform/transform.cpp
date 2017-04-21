@@ -44,7 +44,6 @@ void Transform::setDefaultRegion(GLuint sm) {
             mRegion->setDefaultZ(0, 0, 0);
             break;
     }
-    reset();
 }
 
 void Transform::limit(TransformBean *transformBean) {
@@ -104,5 +103,6 @@ GLboolean Transform::onSettingsChanged(GLuint sm, GLuint rr, GLuint cs) {
     if (cs != mSettingsBean->mCtrlStyle) {
         LOGI("[Transform:onSettingsChanged]mCtrlStyle is changed");
     }
+    reset();
     return result;
 }

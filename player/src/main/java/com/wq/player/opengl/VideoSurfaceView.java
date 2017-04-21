@@ -69,6 +69,9 @@ public class VideoSurfaceView extends GLSurfaceView {
     }
 
     public boolean onTouch(MotionEvent event) {
+        if(mSettingsBean.getCtrlStyle() == SettingsBean.CS_SENSOR){
+            return false;
+        }
         int action = event.getActionMasked();
         int pointerCount = event.getPointerCount();
         float x1 = event.getX();

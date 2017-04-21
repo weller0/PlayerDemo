@@ -124,6 +124,11 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     }
 
     public void setMode(int sm, int rr, int cs) {
+        if(cs == SettingsBean.CS_SENSOR){
+            mSensorCtrl.registerListener();
+        } else{
+            mSensorCtrl.unRegisterListener();
+        }
         mLeftSurfaceView.setMode(sm, rr, cs);
         setShowState(sm);
     }
@@ -195,12 +200,10 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         addListener();
         mLeftSurfaceView.resume();
         play();
-        mSensorCtrl.registerListener();
     }
 
     public void onPause() {
         L.d(TAG, "onPause");
-        mSensorCtrl.unRegisterListener();
         removeListener();
         mLeftSurfaceView.pause();
         pause();

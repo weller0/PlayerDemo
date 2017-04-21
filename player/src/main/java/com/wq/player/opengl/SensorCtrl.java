@@ -6,7 +6,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.wq.player.L;
 import com.wq.player.ndk.NdkSensor;
 
 public class SensorCtrl implements SensorEventListener {
