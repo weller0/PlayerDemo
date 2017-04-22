@@ -20,7 +20,7 @@ void Licence::encode(const unsigned char *key, const char *in, char *out) {
     memset(keyBuffer, '\0', 17);
     memcpy(keyBuffer, key, 16);
     LOGD("[Licence:encode]key=%s", key);
-    AES* aes = new AES(keyBuffer, 0);
+    AES* aes = new AES(keyBuffer, 1);
 
     int nLength = 17;
     char *inBuffer = new char[nLength];
@@ -30,16 +30,8 @@ void Licence::encode(const unsigned char *key, const char *in, char *out) {
 
     sprintf(out, "%s45C7A4FDE80383044E8AD790740EDFFD", out);
 
-
-    AES* aes1 = new AES(keyBuffer, 0);
-    int len = 64;
-    char *mingwen1 = (char *) malloc((len + 1) * sizeof(char));
-    memset(mingwen1, 0, (len + 1) * sizeof(char));
-    aes1->InvCipher(out, mingwen1);
-
     LOGD("[Licence:encode]in=%s", in);
     LOGD("[Licence:encode]out=%s", out);
-    LOGD("[Licence:encode]mingwen1=%s", mingwen1);
 
     delete[] inBuffer;
     free(keyBuffer);
@@ -52,29 +44,29 @@ void Licence::getEncodeA(char *out) {
 GLboolean Licence::isAllow(const char *licence, const char *r1, const char *r2) {
     GLboolean haveLicence = GL_FALSE;
     // 使用IMEI作为Key
-    AES* aes1 = new AES((unsigned char *) getPhoneIMEI(), 0);
+    AES* aes1 = new AES((unsigned char *) getPhoneIMEI(), 1);
 
     // 解密秘钥B
-    int len = strlen(r1);
+    int len = strlen(r2) / 2;
     char *miwen1 = (char *) malloc((len + 1) * sizeof(char));
     memset(miwen1, 0, (len + 1));
-    memcpy(miwen1, r1, len * sizeof(char));
+    memcpy(miwen1, r2, len * sizeof(char));
 
-    len = 64;
+    len = 17;
     char *mingwen1 = (char *) malloc((len + 1) * sizeof(char));
     memset(mingwen1, 0, (len + 1) * sizeof(char));
     aes1->InvCipher(miwen1, mingwen1);
 
     // 使用解密的秘钥B作为Key
-    AES* aes2 = new AES((unsigned char *) mingwen1, 0);
+    AES* aes2 = new AES((unsigned char *) mingwen1, 1);
 
     // 解密硬件ID
-    len = strlen(r1);
+    len = strlen(r1) / 2;
     char *miwen2 = (char *) malloc((len + 1) * sizeof(char));
     memset(miwen2, 0, (len + 1));
     memcpy(miwen2, r1, len * sizeof(char));
 
-    len = 128;
+    len = 17;
     char *mingwen2 = (char *) malloc((len + 1) * sizeof(char));
     memset(mingwen2, 0, (len + 1) * sizeof(char));
     aes2->InvCipher(miwen2, mingwen2);
