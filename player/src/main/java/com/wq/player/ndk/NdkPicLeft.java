@@ -25,8 +25,8 @@ public class NdkPicLeft {
         nativeOnSurfaceChanged(width, height);
     }
 
-    public void onDrawFrame(Bitmap bmp) {
-        nativeOnDrawFrame(bmp);
+    public void onDrawFrame(Bitmap bmp, float asp) {
+        nativeOnDrawFrame(bmp, asp);
     }
 
     public void releaseApi() {
@@ -37,10 +37,6 @@ public class NdkPicLeft {
         return nativeOnTouch(action, pointCount, x1, y1, x2, y2);
     }
 
-    public void onSensor(float x, float y, float z, long timestamp){
-        nativeOnSensor(x, y, z, timestamp);
-    }
-
     public void resetTransform() {
         nativeResetTransform();
     }
@@ -49,7 +45,7 @@ public class NdkPicLeft {
 
     private native void nativeOnSurfaceChanged(int width, int height);
 
-    private native void nativeOnDrawFrame(Bitmap bmp);
+    private native void nativeOnDrawFrame(Bitmap bmp, float asp);
 
     private native void nativeInitApi(SettingsBean bean);
 
@@ -59,8 +55,6 @@ public class NdkPicLeft {
 
     private native boolean nativeOnTouch(int action, int pointCount,
                                          float x1, float y1, float x2, float y2);
-
-    private native void nativeOnSensor(float x, float y, float z, long timestamp);
 
     private native void nativeResetTransform();
 

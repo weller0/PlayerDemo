@@ -1,8 +1,11 @@
 #include "gl/gl_renderer.h"
+#include "gl_renderer.h"
 
 GLRenderer::GLRenderer(TransformBean *transformBean, SettingsBean *settingsBean) {
     LOGI("[GLRenderer] +");
     mSettingsBean = settingsBean;
+    pBeanOriginal = new GLBean();
+    pBeanOriginal->init();
     pBeanProcess = new GLBean();
     pBeanProcess->init();
     pBeanProcess->pTransformBean = transformBean;
@@ -11,31 +14,42 @@ GLRenderer::GLRenderer(TransformBean *transformBean, SettingsBean *settingsBean)
 }
 
 GLRenderer::~GLRenderer() {
-    glDeleteFramebuffers(1, &mFBOId);
+    glDeleteFramebuffers(1, &mDisplayFBOId);
     pBeanProcess->clear();
     delete pBeanProcess;
     pBeanDisplay->clear();
     delete pBeanDisplay;
+    pBeanOriginal->clear();
+    delete pBeanOriginal;
     LOGI("[GLRenderer] -");
 }
 
 GLint GLRenderer::onSurfaceCreated() {
     LOGI("[GLRenderer:onSurfaceCreated]");
+    prepareOriginalBuffer();
     prepareProcessBuffer();
     prepareDisplayBuffer();
     loadShader();
 
     // 创建纹理ID
-    GLuint textureId[] = {0, 0};
-    glGenTextures(2, textureId);
-    pBeanProcess->mTextureId = textureId[0];
-    pBeanDisplay->mTextureId = textureId[1];
+    GLuint textureId[] = {0, 0, 0, 0};
+    glGenTextures(4, textureId);
+    pBeanOriginal->mTextureId = textureId[0];
+    pBeanProcess->mTextureId = textureId[1];
+    pBeanProcess->mComposeTextureId = textureId[2];
+    pBeanDisplay->mTextureId = textureId[3];
 
     // 创建VAO、VBO
-    GLuint size = pBeanProcess->pVertexBuffer->getSize();
+    GLuint size = pBeanOriginal->pVertexBuffer->getSize();
+    pBeanOriginal->pVAO = (GLuint *) malloc(size * sizeof(GLuint));
+    pBeanOriginal->pVBO = (GLuint *) malloc(size * 2 * sizeof(GLuint));
+    // 获取顶点数组对象VAO(Vertex Array Object)和顶点缓冲对象VBO(Vertex Buffer Objects)
+    glGenVertexArrays(size, pBeanOriginal->pVAO);
+    glGenBuffers(size * 2, pBeanOriginal->pVBO);
+
+    size = pBeanProcess->pVertexBuffer->getSize();
     pBeanProcess->pVAO = (GLuint *) malloc(size * sizeof(GLuint));
     pBeanProcess->pVBO = (GLuint *) malloc(size * 2 * sizeof(GLuint));
-    // 获取顶点数组对象VAO(Vertex Array Object)和顶点缓冲对象VBO(Vertex Buffer Objects)
     glGenVertexArrays(size, pBeanProcess->pVAO);
     glGenBuffers(size * 2, pBeanProcess->pVBO);
 
@@ -45,7 +59,7 @@ GLint GLRenderer::onSurfaceCreated() {
     glGenVertexArrays(size, pBeanDisplay->pVAO);
     glGenBuffers(size * 2, pBeanDisplay->pVBO);
 
-    return pBeanProcess->mTextureId;
+    return pBeanOriginal->mTextureId;
 }
 
 void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
@@ -57,15 +71,27 @@ void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
     glViewport(0, 0, w, h);
     configTexture(mWindowWidth, mWindowHeight);
 
-    prepareFBO();
+    prepareProcessFBO();
+    prepareDisplayFBO();
 }
 
-void GLRenderer::onDrawFrame(Bitmap *bmp) {
+void GLRenderer::onDrawFrame(Bitmap *bmp, GLfloat r) {
+    if(asp != r){
+
+    }
+    asp = r;
+    updateBuffer(pBeanOriginal);
     updateBuffer(pBeanProcess);
     updateBuffer(pBeanDisplay);
     prepareDraw(bmp);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mFBOId);
+    glBindFramebuffer(GL_FRAMEBUFFER, mProcessFBOId);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    draw(pBeanOriginal);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, mDisplayFBOId);
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -79,11 +105,44 @@ void GLRenderer::onDrawFrame(Bitmap *bmp) {
 }
 
 void GLRenderer::loadShader() {
+    pBeanProcess->mProgramHandle = createProgram(gOriVertexShader, gOriFragmentShader);
+    // 获取投影、Camera、变换句柄
+    pBeanProcess->mProjectionHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
+                                                           "projection");
+    pBeanProcess->mCameraHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
+                                                       "camera");
+    pBeanProcess->mTransformHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
+                                                          "transform");
+    pBeanProcess->mLightHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
+                                                      "light");
     pBeanDisplay->mProgramHandle = createProgram(gRectVertexShader, gRectFragmentShader);
     LOGI("[GLRenderer:loadShader]pBeanDisplay->mProgramHandle=%d", pBeanDisplay->mProgramHandle);
+    LOGI("[GLRenderer:loadShader]pBeanProcess->mProgramHandle=%d", pBeanProcess->mProgramHandle);
 }
 
 void GLRenderer::configTexture(GLuint w, GLuint h) {
+    // 绑定纹理,之后任何的纹理指令都可以配置当前绑定的纹理
+    glBindTexture(pBeanOriginal->eTextureTarget, pBeanOriginal->mTextureId);
+    // 纹理过滤
+    // GL_NEAREST 当前像素值
+    // GL_LINEAR 当前像素附近颜色的混合色
+    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // 纹理剩余位置显示处理
+    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // 绑定纹理,之后任何的纹理指令都可以配置当前绑定的纹理
+    glBindTexture(pBeanProcess->eTextureTarget, pBeanProcess->mComposeTextureId);
+    // 纹理过滤
+    // GL_NEAREST 当前像素值
+    // GL_LINEAR 当前像素附近颜色的混合色
+    glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // 纹理剩余位置显示处理
+    glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     // 绑定纹理,之后任何的纹理指令都可以配置当前绑定的纹理
     glBindTexture(pBeanProcess->eTextureTarget, pBeanProcess->mTextureId);
     // 纹理过滤
@@ -94,6 +153,8 @@ void GLRenderer::configTexture(GLuint w, GLuint h) {
     // 纹理剩余位置显示处理
     glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(pBeanProcess->eTextureTarget, 0, GL_RGBA,
+                 w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glBindTexture(pBeanDisplay->eTextureTarget, pBeanDisplay->mTextureId);
     // 纹理过滤
@@ -110,6 +171,12 @@ void GLRenderer::configTexture(GLuint w, GLuint h) {
 
 void GLRenderer::prepareDisplayBuffer() {
     LOGI("[GLRenderer:prepareDisplayBuffer]");
+//    GLfloat *rect1 = (GLfloat *)malloc(sizeof(rectVertex1));
+//    for (int i = 0; i < sizeof(rectVertex1) / sizeof(GLfloat); i += 3) {
+//        rect1[i] = asp * ((GLfloat *)rectVertex1)[i];
+//        rect1[i+1] = ((GLfloat *)rectVertex1)[i + 1];
+//        rect1[i+2] = ((GLfloat *)rectVertex1)[i + 2];
+//    }
     pBeanDisplay->pTextureBuffer->updateBuffer((GLfloat *) rectTexture, sizeof(rectTexture),
                                                sizeof(rectTexture[0]), 2);
     pBeanDisplay->pVertexBuffer->updateBuffer((GLfloat *) rectVertex, sizeof(rectVertex),
@@ -117,7 +184,50 @@ void GLRenderer::prepareDisplayBuffer() {
     pBeanDisplay->bUpdateBuffer = GL_TRUE;
 }
 
+void GLRenderer::prepareOriginalBuffer() {
+    LOGI("[GLRenderer:prepareOriginalBuffer]");
+    pBeanOriginal->pTextureBuffer->updateBuffer((GLfloat *) rectTexture, sizeof(rectTexture),
+                                                sizeof(rectTexture[0]), 2);
+    pBeanOriginal->pVertexBuffer->updateBuffer((GLfloat *) rectVertex1, sizeof(rectVertex1),
+                                               sizeof(rectVertex1[0]), 3);
+    pBeanOriginal->bUpdateBuffer = GL_TRUE;
+}
+
 void GLRenderer::prepareProcessBuffer() {
+    LOGI("[GLRenderer:prepareProcessBuffer]");
+    GLuint totalSize = 0;
+    GLuint unitSize = 0;
+    GLuint bufSize = 0;
+    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_1");
+    file->getBufferSize(&totalSize, &unitSize);
+    GLfloat *textureBuffer = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
+    file->getBuffer(textureBuffer, &totalSize, &unitSize, &bufSize);
+    if (bufSize == totalSize && bufSize > 4) {
+        pBeanProcess->pTextureBuffer->updateBuffer(textureBuffer, totalSize * sizeof(GLfloat),
+                                                   unitSize * sizeof(GLfloat), 2);
+    } else {
+        pBeanProcess->pTextureBuffer->updateBuffer((GLfloat *) videoTexture, sizeof(videoTexture),
+                                                   sizeof(videoTexture[0]), 2);
+    }
+    delete file;
+
+    totalSize = 0;
+    unitSize = 0;
+    bufSize = 0;
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_1");
+    file->getBufferSize(&totalSize, &unitSize);
+    GLfloat *vertexBuffer = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
+    file->getBuffer(vertexBuffer, &totalSize, &unitSize, &bufSize);
+    if (bufSize == totalSize && bufSize > 4) {
+        pBeanProcess->pVertexBuffer->updateBuffer(vertexBuffer, totalSize * sizeof(GLfloat),
+                                                  unitSize * sizeof(GLfloat), 3);
+    } else {
+        pBeanProcess->pVertexBuffer->updateBuffer((GLfloat *) videoVertex, sizeof(videoVertex),
+                                                  sizeof(videoVertex[0]), 3);
+    }
+    delete file;
+
+    pBeanProcess->bUpdateBuffer = GL_TRUE;
 }
 
 GLboolean GLRenderer::onSettingsChanged(GLuint sm, GLuint rr, GLuint cs) {
@@ -168,9 +278,9 @@ void GLRenderer::updateBuffer(GLBean *glBean) {
     }
 }
 
-void GLRenderer::prepareFBO() {
-    glGenFramebuffers(1, &mFBOId);
-    glBindFramebuffer(GL_FRAMEBUFFER, mFBOId);
+void GLRenderer::prepareDisplayFBO() {
+    glGenFramebuffers(1, &mDisplayFBOId);
+    glBindFramebuffer(GL_FRAMEBUFFER, mDisplayFBOId);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pBeanDisplay->eTextureTarget,
                            pBeanDisplay->mTextureId, 0);
 
@@ -183,7 +293,27 @@ void GLRenderer::prepareFBO() {
 
     GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (result != GL_FRAMEBUFFER_COMPLETE) {
-        LOGE("[GLRenderer:prepareFBO] glCheckFramebufferStatus is fail(0x%x)", result);
+        LOGE("[GLRenderer:prepareDisplayFBO] glCheckFramebufferStatus is fail(0x%x)", result);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GLRenderer::prepareProcessFBO() {
+    glGenFramebuffers(1, &mProcessFBOId);
+    glBindFramebuffer(GL_FRAMEBUFFER, mProcessFBOId);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pBeanProcess->eTextureTarget,
+                           pBeanProcess->mTextureId, 0);
+
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mWindowWidth, mWindowHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (result != GL_FRAMEBUFFER_COMPLETE) {
+        LOGE("[GLRenderer:prepareProcessFBO] glCheckFramebufferStatus is fail(0x%x)", result);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

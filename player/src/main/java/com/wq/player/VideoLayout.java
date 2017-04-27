@@ -275,6 +275,9 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     public void onPrepareFinish() {
         L.d(TAG, "PlayManager onPrepareFinish");
         setPlayState(PlayState.Prepared);
+        if(isUsePlayer() && mPlayManager != null){
+            mLeftSurfaceView.setAsp(mPlayManager.getVideoAsp());
+        }
         play();
         if (mPlayerListener != null) mPlayerListener.onPrepareFinish();
     }

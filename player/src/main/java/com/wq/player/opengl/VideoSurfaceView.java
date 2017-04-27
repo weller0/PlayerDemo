@@ -28,6 +28,7 @@ public class VideoSurfaceView extends GLSurfaceView {
     private VideoRenderer mRenderer;
     private SurfaceTexture mSurfaceTexture;
     private int mTextureId = -1;
+    private float asp = 1.777778f;
 
     public VideoSurfaceView(Context context, boolean isUseBitmap, boolean isLeft, int sm, int cs, int rr) {
         super(context);
@@ -90,6 +91,7 @@ public class VideoSurfaceView extends GLSurfaceView {
         synchronized (syncObj) {
             mFrameBmp = bmp;
             requestRender();
+            asp = 1.0f * mFrameBmp.getWidth() / mFrameBmp.getHeight();
         }
     }
 
@@ -108,6 +110,10 @@ public class VideoSurfaceView extends GLSurfaceView {
             mSettingsBean.setCtrlStyle(cs);
         }
         mPicLeft.setSettingsBean(mSettingsBean);
+    }
+
+    public void setAsp(float r){
+        asp = r;
     }
 
     private class VideoRenderer implements Renderer {
@@ -133,7 +139,7 @@ public class VideoSurfaceView extends GLSurfaceView {
                 }
             }
             synchronized (syncObj) {
-                mPicLeft.onDrawFrame(mFrameBmp);
+                mPicLeft.onDrawFrame(mFrameBmp, asp);
 //                if(mFrameBmp != null && mFrameBmp.isRecycled()){
 //                    mFrameBmp.recycle();
 //                    mFrameBmp = null;

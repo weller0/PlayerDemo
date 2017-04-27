@@ -11,6 +11,7 @@
 #include "gl/gl_base.h"
 #include "bean/bean_base.h"
 #include "bean/float_buffer.h"
+#include "file/file.h"
 
 #define STR(s) #s
 #define STRV(s) STR(s)
@@ -28,6 +29,7 @@ typedef struct {
     GLint mTransformHandle;             // 变换矩阵的句柄
     GLint mLightHandle;                 // 变换矩阵的句柄
     GLuint mTextureId;                  //
+    GLuint mComposeTextureId;
     GLboolean bUpdateBuffer;
     GLenum eTextureTarget;
 
@@ -45,6 +47,7 @@ typedef struct {
         mTransformHandle = -1;
         mLightHandle = -1;
         mTextureId = 0;
+        mComposeTextureId = 0;
         eTextureTarget = GL_TEXTURE_2D;
         pVBO = NULL;
         pVAO = NULL;
@@ -73,6 +76,31 @@ typedef struct {
         }
     }
 } GLBean;
+
+const char gOriVertexShader[] =
+        "#version 300 es                                                    \n"
+        "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
+        "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec2 texCoord; \n"
+        "out vec2 TexCoord;                                                 \n"
+        "uniform mat4 projection;                                           \n"
+        "uniform mat4 camera;                                               \n"
+        "uniform mat4 transform;                                            \n"
+        "void main() {                                                      \n"
+        "  gl_Position = projection*camera*transform*vec4(position, 1.0);   \n"
+        "  TexCoord = vec2(texCoord.s, 1.0-texCoord.t);                     \n"
+        "}\n";
+
+const char gOriFragmentShader[] =
+        "#version 300 es                        \n"
+        "precision mediump float;               \n"
+        "in vec2 TexCoord;                      \n"
+        "uniform sampler2D tTexture;            \n"
+        "uniform vec3 light;                    \n"
+        "out vec4 color;                        \n"
+        "void main() {                          \n"
+        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
+        "}\n";
+
 
 const char gRectVertexShader[] =
         "#version 300 es                                                    \n"
@@ -106,12 +134,65 @@ const GLfloat rectVertex[][12] = {
                 1, 1, 0.5,
         },
 };
+
+const GLfloat rectVertex1[][12] = {
+        {
+                -1, -1, 0.5,
+                -1, 1, 0.5,
+                1, -1, 0.5,
+                1, 1, 0.5,
+        },
+};
+
 const GLfloat rectTexture[][8] = {
         {
                 0, 0,
                 0, 1,
                 1, 0,
                 1, 1,
+        },
+};
+
+
+const GLfloat videoVertex[][12] = {
+        {
+                -2,   -0.5, -1,
+                -2,   0.5, -1,
+                -1,  -0.5, -1,
+                -1,  0.5, -1,
+        },
+        {
+                -0.5, -0.5, -1,
+                -0.5, 0.5, -1,
+                0.5, -0.5, -1,
+                0.5, 0.5, -1,
+        },
+        {
+                1,    -0.5, -1,
+                1,    0.5, -1,
+                2,   -0.5, -1,
+                2,   0.5, -1,
+        },
+};
+
+const GLfloat videoTexture[][8] = {
+        {
+                0.0, 0.0,
+                0.0, 1.0,
+                1.0, 0.0,
+                1.0, 1.0,
+        },
+        {
+                0.0, 0.0,
+                0.0, 1.0,
+                1.0, 0.0,
+                1.0, 1.0,
+        },
+        {
+                0.0, 0.0,
+                0.0, 1.0,
+                1.0, 0.0,
+                1.0, 1.0,
         },
 };
 
@@ -125,12 +206,13 @@ public:
 
     GLint onSurfaceCreated();
 
-    void onDrawFrame(Bitmap *bmp);
+    void onDrawFrame(Bitmap *bmp, GLfloat asp);
 
     GLboolean onSettingsChanged(GLuint sm, GLuint rr, GLuint cs);
 
 protected:
     GLBean *pBeanProcess;
+    GLBean *pBeanOriginal;
     GLuint mWindowWidth;
     GLuint mWindowHeight;
 
@@ -138,18 +220,24 @@ protected:
 
     virtual void prepareDraw(Bitmap *bmp);
 
-    virtual void prepareProcessBuffer();
+    virtual void prepareOriginalBuffer();
 
 private :
     SettingsBean *mSettingsBean;
     GLBean *pBeanDisplay;
-    GLuint mFBOId;
+    GLuint mDisplayFBOId;
+    GLuint mProcessFBOId;
+    GLfloat asp;
 
     void configTexture(GLuint w, GLuint h);
 
-    void prepareFBO();
+    void prepareDisplayFBO();
+
+    void prepareProcessFBO();
 
     void prepareDisplayBuffer();
+
+    void prepareProcessBuffer();
 
     void updateBuffer(GLBean *glBean);
 
