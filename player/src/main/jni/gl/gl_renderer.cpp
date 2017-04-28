@@ -11,6 +11,7 @@ GLRenderer::GLRenderer(TransformBean *transformBean, SettingsBean *settingsBean)
     pBeanProcess->pTransformBean = transformBean;
     pBeanDisplay = new GLBean();
     pBeanDisplay->init();
+    isFirstFrame = GL_TRUE;
 }
 
 GLRenderer::~GLRenderer() {
@@ -21,6 +22,7 @@ GLRenderer::~GLRenderer() {
     delete pBeanDisplay;
     pBeanOriginal->clear();
     delete pBeanOriginal;
+    free(pComposeData);
     LOGI("[GLRenderer] -");
 }
 
@@ -70,16 +72,13 @@ void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
     pBeanProcess->pMatrix->lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
     glViewport(0, 0, w, h);
     configTexture(mWindowWidth, mWindowHeight);
+    pComposeData = (GLubyte *) malloc(mWindowWidth * mWindowHeight * 4 * sizeof(GLubyte));
 
     prepareProcessFBO();
     prepareDisplayFBO();
 }
 
-void GLRenderer::onDrawFrame(Bitmap *bmp, GLfloat r) {
-    if(asp != r){
-
-    }
-    asp = r;
+void GLRenderer::onDrawFrame(Bitmap *bmp) {
     updateBuffer(pBeanOriginal);
     updateBuffer(pBeanProcess);
     updateBuffer(pBeanDisplay);
@@ -90,6 +89,8 @@ void GLRenderer::onDrawFrame(Bitmap *bmp, GLfloat r) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     draw(pBeanOriginal);
+
+    prepareComposeTexture();
 
     glBindFramebuffer(GL_FRAMEBUFFER, mDisplayFBOId);
     glEnable(GL_DEPTH_TEST);
@@ -102,6 +103,23 @@ void GLRenderer::onDrawFrame(Bitmap *bmp, GLfloat r) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     draw(pBeanDisplay);
+}
+
+void GLRenderer::prepareComposeTexture() {
+    glReadPixels(0, 0, mWindowWidth, mWindowHeight, GL_RGBA, GL_UNSIGNED_BYTE, pComposeData);
+
+    if (isFirstFrame) {
+        isFirstFrame = GL_FALSE;
+        glBindTexture(GL_TEXTURE_2D, pBeanProcess->mComposeTextureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     mWindowWidth, mWindowHeight, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, pComposeData);
+    } else {
+        glBindTexture(GL_TEXTURE_2D, pBeanProcess->mComposeTextureId);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                        mWindowWidth, mWindowHeight,
+                        GL_RGBA, GL_UNSIGNED_BYTE, pComposeData);
+    }
 }
 
 void GLRenderer::loadShader() {
@@ -171,12 +189,6 @@ void GLRenderer::configTexture(GLuint w, GLuint h) {
 
 void GLRenderer::prepareDisplayBuffer() {
     LOGI("[GLRenderer:prepareDisplayBuffer]");
-//    GLfloat *rect1 = (GLfloat *)malloc(sizeof(rectVertex1));
-//    for (int i = 0; i < sizeof(rectVertex1) / sizeof(GLfloat); i += 3) {
-//        rect1[i] = asp * ((GLfloat *)rectVertex1)[i];
-//        rect1[i+1] = ((GLfloat *)rectVertex1)[i + 1];
-//        rect1[i+2] = ((GLfloat *)rectVertex1)[i + 2];
-//    }
     pBeanDisplay->pTextureBuffer->updateBuffer((GLfloat *) rectTexture, sizeof(rectTexture),
                                                sizeof(rectTexture[0]), 2);
     pBeanDisplay->pVertexBuffer->updateBuffer((GLfloat *) rectVertex, sizeof(rectVertex),
@@ -188,8 +200,8 @@ void GLRenderer::prepareOriginalBuffer() {
     LOGI("[GLRenderer:prepareOriginalBuffer]");
     pBeanOriginal->pTextureBuffer->updateBuffer((GLfloat *) rectTexture, sizeof(rectTexture),
                                                 sizeof(rectTexture[0]), 2);
-    pBeanOriginal->pVertexBuffer->updateBuffer((GLfloat *) rectVertex1, sizeof(rectVertex1),
-                                               sizeof(rectVertex1[0]), 3);
+    pBeanOriginal->pVertexBuffer->updateBuffer((GLfloat *) rectVertex, sizeof(rectVertex),
+                                               sizeof(rectVertex[0]), 3);
     pBeanOriginal->bUpdateBuffer = GL_TRUE;
 }
 
@@ -198,7 +210,7 @@ void GLRenderer::prepareProcessBuffer() {
     GLuint totalSize = 0;
     GLuint unitSize = 0;
     GLuint bufSize = 0;
-    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_1");
+    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_0");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *textureBuffer = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(textureBuffer, &totalSize, &unitSize, &bufSize);
@@ -214,7 +226,7 @@ void GLRenderer::prepareProcessBuffer() {
     totalSize = 0;
     unitSize = 0;
     bufSize = 0;
-    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_1");
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_0");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *vertexBuffer = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(vertexBuffer, &totalSize, &unitSize, &bufSize);
@@ -353,7 +365,11 @@ void GLRenderer::draw(GLBean *glBean) {
         if (glBean->mLightHandle != -1) {
             glUniform3f(glBean->mLightHandle, 1, 1, 1);
         }
-        glBindTexture(glBean->eTextureTarget, glBean->mTextureId);
+        if (glBean->mComposeTextureId != 0 && i > 0) {
+            glBindTexture(glBean->eTextureTarget, glBean->mComposeTextureId);
+        } else {
+            glBindTexture(glBean->eTextureTarget, glBean->mTextureId);
+        }
         glDrawArrays(GL_TRIANGLE_STRIP, 0, glBean->pVertexBuffer->getBuffer(i)->pointSize);
         // 解绑VAO
         glBindVertexArray(0);

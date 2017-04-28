@@ -48,6 +48,8 @@ public class BasePlayerActivity extends BaseActivity implements
         mNoLicenceTextView.setTextColor(Color.rgb(255, 255, 255));
         mNoLicenceTextView.setGravity(Gravity.CENTER);
         noLicence.addView(mNoLicenceTextView);
+
+        mUIManager.getShowModeButton().setVisibility(View.GONE);
     }
 
     protected void setSource() {

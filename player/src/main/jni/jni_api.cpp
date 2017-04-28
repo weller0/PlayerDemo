@@ -53,10 +53,10 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
             }
             AndroidBitmap_unlockPixels(env, bmp);
             bitmap->bitmapInfo = bitmapInfo;
-            pGLDisplay->onDrawFrame(bitmap, asp);
+            pGLDisplay->onDrawFrame(bitmap);
             delete bitmap;
         } else {
-            pGLDisplay->onDrawFrame(NULL, asp);
+            pGLDisplay->onDrawFrame(NULL);
         }
     }
 }

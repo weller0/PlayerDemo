@@ -135,15 +135,6 @@ const GLfloat rectVertex[][12] = {
         },
 };
 
-const GLfloat rectVertex1[][12] = {
-        {
-                -1, -1, 0.5,
-                -1, 1, 0.5,
-                1, -1, 0.5,
-                1, 1, 0.5,
-        },
-};
-
 const GLfloat rectTexture[][8] = {
         {
                 0, 0,
@@ -156,10 +147,10 @@ const GLfloat rectTexture[][8] = {
 
 const GLfloat videoVertex[][12] = {
         {
-                -2,   -0.5, -1,
-                -2,   0.5, -1,
-                -1,  -0.5, -1,
-                -1,  0.5, -1,
+                -1.55,   -0.5, -1,
+                -1.55,   0.5, -1,
+                -0.55,  -0.5, -1,
+                -0.55,  0.5, -1,
         },
         {
                 -0.5, -0.5, -1,
@@ -168,10 +159,10 @@ const GLfloat videoVertex[][12] = {
                 0.5, 0.5, -1,
         },
         {
-                1,    -0.5, -1,
-                1,    0.5, -1,
-                2,   -0.5, -1,
-                2,   0.5, -1,
+                0.55,    -0.5, -1,
+                0.55,    0.5, -1,
+                1.55,   -0.5, -1,
+                1.55,   0.5, -1,
         },
 };
 
@@ -206,7 +197,7 @@ public:
 
     GLint onSurfaceCreated();
 
-    void onDrawFrame(Bitmap *bmp, GLfloat asp);
+    void onDrawFrame(Bitmap *bmp);
 
     GLboolean onSettingsChanged(GLuint sm, GLuint rr, GLuint cs);
 
@@ -220,20 +211,23 @@ protected:
 
     virtual void prepareDraw(Bitmap *bmp);
 
-    virtual void prepareOriginalBuffer();
-
 private :
     SettingsBean *mSettingsBean;
     GLBean *pBeanDisplay;
     GLuint mDisplayFBOId;
     GLuint mProcessFBOId;
-    GLfloat asp;
+    GLboolean isFirstFrame;
+    GLubyte *pComposeData;
 
     void configTexture(GLuint w, GLuint h);
 
     void prepareDisplayFBO();
 
     void prepareProcessFBO();
+
+    void prepareComposeTexture();
+
+    virtual void prepareOriginalBuffer();
 
     void prepareDisplayBuffer();
 
