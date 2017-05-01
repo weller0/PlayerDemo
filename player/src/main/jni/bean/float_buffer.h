@@ -34,6 +34,10 @@ public:
      */
     void updateBuffer(GLfloat *buf, GLuint totalSize, GLuint unitSize,
                       GLuint unitPointSize, GLuint typeSize = sizeof(GLfloat));
+
+    void add(GLfloat *buf, GLuint totalSize, GLuint unitSize,
+             GLuint unitPointSize, GLuint typeSize = sizeof(GLfloat));
+
 private:
     _FloatBuffer **pBuffer;
     GLuint bufCount;

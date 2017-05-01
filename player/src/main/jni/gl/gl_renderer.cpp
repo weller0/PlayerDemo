@@ -210,12 +210,12 @@ void GLRenderer::prepareProcessBuffer() {
     GLuint totalSize = 0;
     GLuint unitSize = 0;
     GLuint bufSize = 0;
-    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_0");
+    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_1");
     file->getBufferSize(&totalSize, &unitSize);
-    GLfloat *textureBuffer = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
-    file->getBuffer(textureBuffer, &totalSize, &unitSize, &bufSize);
+    GLfloat *textureBuffer1 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
+    file->getBuffer(textureBuffer1, &totalSize, &unitSize, &bufSize);
     if (bufSize == totalSize && bufSize > 4) {
-        pBeanProcess->pTextureBuffer->updateBuffer(textureBuffer, totalSize * sizeof(GLfloat),
+        pBeanProcess->pTextureBuffer->updateBuffer(textureBuffer1, totalSize * sizeof(GLfloat),
                                                    unitSize * sizeof(GLfloat), 2);
     } else {
         pBeanProcess->pTextureBuffer->updateBuffer((GLfloat *) videoTexture, sizeof(videoTexture),
@@ -226,12 +226,45 @@ void GLRenderer::prepareProcessBuffer() {
     totalSize = 0;
     unitSize = 0;
     bufSize = 0;
-    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_0");
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_2");
     file->getBufferSize(&totalSize, &unitSize);
-    GLfloat *vertexBuffer = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
-    file->getBuffer(vertexBuffer, &totalSize, &unitSize, &bufSize);
+    GLfloat *textureBuffer2 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
+    file->getBuffer(textureBuffer2, &totalSize, &unitSize, &bufSize);
     if (bufSize == totalSize && bufSize > 4) {
-        pBeanProcess->pVertexBuffer->updateBuffer(vertexBuffer, totalSize * sizeof(GLfloat),
+        pBeanProcess->pTextureBuffer->add(textureBuffer2, totalSize * sizeof(GLfloat),
+                                                   unitSize * sizeof(GLfloat), 2);
+    } else {
+        pBeanProcess->pTextureBuffer->updateBuffer((GLfloat *) videoTexture, sizeof(videoTexture),
+                                                   sizeof(videoTexture[0]), 2);
+    }
+    delete file;
+
+
+    totalSize = 0;
+    unitSize = 0;
+    bufSize = 0;
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_1");
+    file->getBufferSize(&totalSize, &unitSize);
+    GLfloat *vertexBuffer1 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
+    file->getBuffer(vertexBuffer1, &totalSize, &unitSize, &bufSize);
+    if (bufSize == totalSize && bufSize > 4) {
+        pBeanProcess->pVertexBuffer->updateBuffer(vertexBuffer1, totalSize * sizeof(GLfloat),
+                                                  unitSize * sizeof(GLfloat), 3);
+    } else {
+        pBeanProcess->pVertexBuffer->updateBuffer((GLfloat *) videoVertex, sizeof(videoVertex),
+                                                  sizeof(videoVertex[0]), 3);
+    }
+    delete file;
+
+    totalSize = 0;
+    unitSize = 0;
+    bufSize = 0;
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_2");
+    file->getBufferSize(&totalSize, &unitSize);
+    GLfloat *vertexBuffer2 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
+    file->getBuffer(vertexBuffer2, &totalSize, &unitSize, &bufSize);
+    if (bufSize == totalSize && bufSize > 4) {
+        pBeanProcess->pVertexBuffer->add(vertexBuffer2, totalSize * sizeof(GLfloat),
                                                   unitSize * sizeof(GLfloat), 3);
     } else {
         pBeanProcess->pVertexBuffer->updateBuffer((GLfloat *) videoVertex, sizeof(videoVertex),

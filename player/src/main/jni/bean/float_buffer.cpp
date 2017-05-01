@@ -36,6 +36,11 @@ void FloatBuffer::updateBuffer(GLfloat *buf, GLuint totalSize, GLuint unitSize,
         }
     }
     bufCount = 0;
+    add(buf, totalSize, unitSize, unitPointSize, typeSize);
+}
+
+void FloatBuffer::add(GLfloat *buf, GLuint totalSize, GLuint unitSize,
+                               GLuint unitPointSize, GLuint typeSize) {
     for (GLuint i = 0; i < totalSize / unitSize; i++) {
         _FloatBuffer *buffer = new _FloatBuffer();
         buffer->buffer = buf + i * unitSize / typeSize;
