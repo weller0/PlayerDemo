@@ -54,7 +54,7 @@ typedef struct {
 typedef struct {
     GLfloat x;
     GLfloat y;
-} Point;
+} Point2;
 
 typedef struct {
     GLfloat x;

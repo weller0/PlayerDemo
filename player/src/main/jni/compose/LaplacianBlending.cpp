@@ -114,7 +114,7 @@ public:
 };
 
 Mat_<Vec3f> LaplacianBlend(const Mat_<Vec3f> &l, const Mat_<Vec3f> &r, const Mat_<float> &m) {
-    LaplacianBlending lb(l, r, m, 4);
+    LaplacianBlending lb(l, r, m, 2);
     return lb.blend();
 }
 

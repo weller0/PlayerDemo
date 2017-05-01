@@ -32,15 +32,15 @@ public:
 private:
     SettingsBean *mSettingsBean;
     GLfloat mDistance;
-    Point *mStartPoint;
-    Point *mMidPoint;
+    Point2 *mStartPoint;
+    Point2 *mMidPoint;
     GLuint mMode;
     GLuint64 mLastTime;
 
     void distance(GLfloat *dis, GLuint pointerCount,
                   GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
 
-    void midPoint(Point *midPoint, GLuint pointerCount,
+    void midPoint(Point2 *midPoint, GLuint pointerCount,
                   GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
 
     void setDrag(TransformBean *bean, GLfloat x, GLfloat y, GLuint time);

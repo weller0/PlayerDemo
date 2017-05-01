@@ -2,8 +2,8 @@
 
 Touch::Touch(SettingsBean *settingsBean) {
     mSettingsBean = settingsBean;
-    mStartPoint = new Point();
-    mMidPoint = new Point();
+    mStartPoint = new Point2();
+    mMidPoint = new Point2();
     mMode = MODE_NORMAL;
 }
 
@@ -92,7 +92,7 @@ void Touch::distance(GLfloat *dis, GLuint pointerCount, GLfloat x1, GLfloat y1, 
     }
 }
 
-void Touch::midPoint(Point *midPoint, GLuint pointerCount, GLfloat x1, GLfloat y1, GLfloat x2,
+void Touch::midPoint(Point2 *midPoint, GLuint pointerCount, GLfloat x1, GLfloat y1, GLfloat x2,
                      GLfloat y2) {
     if (pointerCount == 2) {
         midPoint->x = (x2 + x1) / 2;
