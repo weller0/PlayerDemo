@@ -162,9 +162,6 @@ void GLRenderer::initCompose(GLuint w, GLuint h) {
     TMatrix[2] = parameter[17];
     pdK = parameter[18];
 
-    //融合参数初始化，运行一次
-    Point2f center0 = Point2f(rad_all_1, rad_all_1);
-    Point2f center1 = Point2f(rad_all_2, rad_all_2);
     Generate_fusion_area_init(
             Size(w, h),
             center_all_1, center_all_2,          //两个镜头中心参数
@@ -179,7 +176,7 @@ void GLRenderer::initCompose(GLuint w, GLuint h) {
 
 void GLRenderer::compose(GLuint w, GLuint h, GLubyte *buffer) {
     //加载图片
-    Mat imageA = Mat(w, h, CV_64FC1, pComposeData);
+    Mat imageA = Mat(w, h, CV_8UC3, buffer);
     if (imageA.empty()) {
         LOGE("[Picture:prepareDraw]Can not load image.");
         return;
