@@ -113,10 +113,6 @@ public class PlayManager implements IPlayer, SurfaceTexture.OnFrameAvailableList
         if(mListener != null) mListener.onFrameUpdate();
     }
 
-    public float getVideoAsp(){
-        return 1.0f * mMediaPlayer.getVideoWidth() / mMediaPlayer.getVideoHeight();
-    }
-
     public interface Listener {
         void updatePlayingProgress(int time);
 

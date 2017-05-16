@@ -25,8 +25,7 @@ JNIEXPORT void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnSurfaceChanged(
                                                                                 jint height);
 JNIEXPORT void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
                                                                            jobject obj,
-                                                                           jobject bmp,
-                                                                           jfloat asp);
+                                                                           jobject bmp);
 JNIEXPORT void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeSetSettingsBean(JNIEnv *env,
                                                                                jobject obj,
                                                                                jobject bean);

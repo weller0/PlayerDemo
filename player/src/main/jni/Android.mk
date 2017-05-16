@@ -11,8 +11,10 @@ OPENCV_LIB_TYPE:=STATIC
 LOCAL_MODULE        := libplayer_jni
 LOCAL_CFLAGS        := -Werror
 
-LOCAL_C_INCLUDES    :=  $(LOCAL_PATH)               \
-                        $(LOCAL_PATH)/open_cv/jni/include
+LOCAL_C_INCLUDES    :=  $(LOCAL_PATH)                       \
+                        $(LOCAL_PATH)/open_cv/jni/include   \
+                        $(LOCAL_PATH)/ffmpeg
+
 LOCAL_SRC_FILES     :=  file/file.cpp               \
                         security/aes.cpp            \
                         security/licence.cpp        \

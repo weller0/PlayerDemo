@@ -25,8 +25,8 @@ public class NdkPicLeft {
         nativeOnSurfaceChanged(width, height);
     }
 
-    public void onDrawFrame(Bitmap bmp, float asp) {
-        nativeOnDrawFrame(bmp, asp);
+    public void onDrawFrame(Bitmap bmp) {
+        nativeOnDrawFrame(bmp);
     }
 
     public void releaseApi() {
@@ -45,7 +45,7 @@ public class NdkPicLeft {
 
     private native void nativeOnSurfaceChanged(int width, int height);
 
-    private native void nativeOnDrawFrame(Bitmap bmp, float asp);
+    private native void nativeOnDrawFrame(Bitmap bmp);
 
     private native void nativeInitApi(SettingsBean bean);
 

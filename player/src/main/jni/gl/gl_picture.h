@@ -16,9 +16,12 @@ const char gPicVertexShader[] =
         "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
         "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec2 texCoord; \n"
         "out vec2 TexCoord;                                                 \n"
+        "uniform mat4 projection;                                           \n"
+        "uniform mat4 camera;                                               \n"
+        "uniform mat4 transform;                                            \n"
         "void main() {                                                      \n"
-        "  gl_Position = vec4(position, 1.0);                               \n"
-        "  TexCoord = vec2(texCoord.s, texCoord.t);                         \n"
+        "  gl_Position = projection*camera*transform*vec4(position, 1.0);   \n"
+        "  TexCoord = vec2(texCoord.s, 1.0-texCoord.t);                     \n"
         "}\n";
 
 const char gPicFragmentShader[] =
@@ -26,9 +29,10 @@ const char gPicFragmentShader[] =
         "precision mediump float;               \n"
         "in vec2 TexCoord;                      \n"
         "uniform sampler2D tTexture;            \n"
+        "uniform vec3 light;                    \n"
         "out vec4 color;                        \n"
         "void main() {                          \n"
-        "  color = texture(tTexture, TexCoord); \n"
+        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
         "}\n";
 
 class Picture : public GLRenderer {

@@ -3,14 +3,11 @@
 GLRenderer::GLRenderer(TransformBean *transformBean, SettingsBean *settingsBean) {
     LOGI("[GLRenderer] +");
     mSettingsBean = settingsBean;
-    pBeanOriginal = new GLBean();
-    pBeanOriginal->init();
     pBeanProcess = new GLBean();
     pBeanProcess->init();
     pBeanProcess->pTransformBean = transformBean;
     pBeanDisplay = new GLBean();
     pBeanDisplay->init();
-    isFirstFrame = GL_TRUE;
 }
 
 GLRenderer::~GLRenderer() {
@@ -19,36 +16,24 @@ GLRenderer::~GLRenderer() {
     delete pBeanProcess;
     pBeanDisplay->clear();
     delete pBeanDisplay;
-    pBeanOriginal->clear();
-    delete pBeanOriginal;
-    free(pComposeData);
     LOGI("[GLRenderer] -");
 }
 
 GLint GLRenderer::onSurfaceCreated() {
     LOGI("[GLRenderer:onSurfaceCreated]");
-    prepareOriginalBuffer();
     prepareProcessBuffer();
     prepareDisplayBuffer();
     loadShader();
 
     // 创建纹理ID
-    GLuint textureId[] = {0, 0, 0, 0};
-    glGenTextures(4, textureId);
-    pBeanOriginal->mTextureId = textureId[0];
-    pBeanProcess->mTextureId = textureId[1];
-    pBeanProcess->mComposeTextureId = textureId[2];
-    pBeanDisplay->mTextureId = textureId[3];
+    GLuint textureId[] = {0, 0, 0};
+    glGenTextures(3, textureId);
+    pBeanProcess->mTextureId = textureId[0];
+    pBeanProcess->mComposeTextureId = textureId[1];
+    pBeanDisplay->mTextureId = textureId[2];
 
     // 创建VAO、VBO
-    GLuint size = pBeanOriginal->pVertexBuffer->getSize();
-    pBeanOriginal->pVAO = (GLuint *) malloc(size * sizeof(GLuint));
-    pBeanOriginal->pVBO = (GLuint *) malloc(size * 2 * sizeof(GLuint));
-    // 获取顶点数组对象VAO(Vertex Array Object)和顶点缓冲对象VBO(Vertex Buffer Objects)
-    glGenVertexArrays(size, pBeanOriginal->pVAO);
-    glGenBuffers(size * 2, pBeanOriginal->pVBO);
-
-    size = pBeanProcess->pVertexBuffer->getSize();
+    GLuint size = pBeanProcess->pVertexBuffer->getSize();
     pBeanProcess->pVAO = (GLuint *) malloc(size * sizeof(GLuint));
     pBeanProcess->pVBO = (GLuint *) malloc(size * 2 * sizeof(GLuint));
     glGenVertexArrays(size, pBeanProcess->pVAO);
@@ -60,7 +45,7 @@ GLint GLRenderer::onSurfaceCreated() {
     glGenVertexArrays(size, pBeanDisplay->pVAO);
     glGenBuffers(size * 2, pBeanDisplay->pVBO);
 
-    return pBeanOriginal->mTextureId;
+    return updateTextureAuto();
 }
 
 void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
@@ -71,25 +56,13 @@ void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
     pBeanProcess->pMatrix->lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
     glViewport(0, 0, w, h);
     configTexture(mWindowWidth, mWindowHeight);
-    pComposeData = (GLubyte *) malloc(mWindowWidth * mWindowHeight * 4 * sizeof(GLubyte));
-
-    prepareProcessFBO();
     prepareDisplayFBO();
 }
 
 void GLRenderer::onDrawFrame(Bitmap *bmp) {
-    updateBuffer(pBeanOriginal);
     updateBuffer(pBeanProcess);
     updateBuffer(pBeanDisplay);
     prepareDraw(bmp);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, mProcessFBOId);
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    draw(pBeanOriginal);
-
-    prepareComposeTexture();
 
     glBindFramebuffer(GL_FRAMEBUFFER, mDisplayFBOId);
     glEnable(GL_DEPTH_TEST);
@@ -104,127 +77,110 @@ void GLRenderer::onDrawFrame(Bitmap *bmp) {
     draw(pBeanDisplay);
 }
 
-void GLRenderer::prepareComposeTexture() {
-    glReadPixels(0, 0, mWindowWidth, mWindowHeight, GL_RGBA, GL_UNSIGNED_BYTE, pComposeData);
-
-    if (isFirstFrame) {
-        isFirstFrame = GL_FALSE;
-        initCompose(mWindowWidth, mWindowHeight);
-        compose(mWindowWidth, mWindowHeight, pComposeData);
-        glBindTexture(GL_TEXTURE_2D, pBeanProcess->mComposeTextureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                     img_out.cols, img_out.rows, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, img_out.data);
-    } else {
-        compose(mWindowWidth, mWindowHeight, pComposeData);
-        glBindTexture(GL_TEXTURE_2D, pBeanProcess->mComposeTextureId);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                        img_out.cols, img_out.rows,
-                        GL_RGBA, GL_UNSIGNED_BYTE, img_out.data);
-    }
+GLuint GLRenderer::updateTextureAuto() {
+    return pBeanProcess->mTextureId;
 }
 
-void GLRenderer::initCompose(GLuint w, GLuint h) {
-    // init
-    //需要参数，从文件读取
-    GLuint totalSize = 0;
-    GLuint unitSize = 0;
-    GLuint bufSize = 0;
-    File *file = new File((char *) "/storage/emulated/0/Movies/parameter");
-    file->getBufferSize(&totalSize, &unitSize);
-    LOGD("[File]parameter size %d, %d", totalSize, unitSize);
-    double *parameter = (double *) malloc(totalSize * sizeof(double));
-    file->getBuffer(parameter, &totalSize, &unitSize, &bufSize);
-
-
-    //读取保存的参数
-    Point2f center_all_1, center_all_2;        //两个镜头中心参数
-    float rad_all_1, rad_all_2;                //镜头有效区域半径参数
-    Mat RotationMatrix(3, 3, CV_64FC1);        //3D 点标定外参 旋转
-    Vec3d TMatrix;                             //3D 点标定外参 平移
-    double pdK;                                //3D 点标定外参 缩放
-
-    center_all_1 = Point2f((float) parameter[0], (float) parameter[1]);
-    rad_all_1 = (float) parameter[2];
-    center_all_2 = Point2f((float) parameter[3], (float) parameter[4]);
-    rad_all_2 = (float) parameter[5];
-    RotationMatrix.at<double>(0, 0) = parameter[6];
-    RotationMatrix.at<double>(0, 1) = parameter[7];
-    RotationMatrix.at<double>(0, 2) = parameter[8];
-    RotationMatrix.at<double>(1, 0) = parameter[9];
-    RotationMatrix.at<double>(1, 1) = parameter[10];
-    RotationMatrix.at<double>(1, 2) = parameter[11];
-    RotationMatrix.at<double>(2, 0) = parameter[12];
-    RotationMatrix.at<double>(2, 1) = parameter[13];
-    RotationMatrix.at<double>(2, 2) = parameter[14];
-    TMatrix[0] = parameter[15];
-    TMatrix[1] = parameter[16];
-    TMatrix[2] = parameter[17];
-    pdK = parameter[18];
-
-    Generate_fusion_area_init(
-            Size(w, h),
-            center_all_1, center_all_2,          //两个镜头中心参数
-            rad_all_1, rad_all_2,                //镜头有效区域半径参数
-            RotationMatrix, TMatrix, pdK,        //3D 点标定外参
-            &imapx_roi0,
-            &imapy_roi0,                         //imag_0 经纬展开 map
-            &imapx_roi1,
-            &imapy_roi1,                         //imag_1 经纬展开 map
-            &im);                                //融合区 Mark
-}
-
-void GLRenderer::compose(GLuint w, GLuint h, GLubyte *buffer) {
-    //加载图片
-    Mat imageA = Mat(w, h, CV_8UC3, buffer);
-    if (imageA.empty()) {
-        LOGE("[Picture:prepareDraw]Can not load image.");
-        return;
-    }
-    LOGD("imageA (%d, %d)", imageA.cols, imageA.rows);
-    GLuint64 lastTime = getCurrentTimeMs();
-    //生成图片
-    Generate_fusion_area(
-            Size(imageA.cols, imageA.rows),
-            imageA,                //输入原图片
-            imapx_roi0,
-            imapy_roi0,                    //imageA 经纬展开 map
-            imapx_roi1,
-            imapy_roi1,                    //imageB 经纬展开 map
-            im,                            //融合区 Mark
-            &img_out);
-    LOGD("[Picture:Generate_fusion_area] %dms", (GLuint) (getCurrentTimeMs() - lastTime));
-    LOGD("img_out (%d, %d)", img_out.cols, img_out.rows);
-}
+//void GLRenderer::prepareComposeTexture() {
+//    glReadPixels(0, 0, mWindowWidth, mWindowHeight, GL_RGBA, GL_UNSIGNED_BYTE, pComposeData);
+//
+//    if (isFirstFrame) {
+//        isFirstFrame = GL_FALSE;
+//        initCompose(mWindowWidth, mWindowHeight);
+//        compose(mWindowWidth, mWindowHeight, pComposeData);
+//        glBindTexture(GL_TEXTURE_2D, pBeanProcess->mComposeTextureId);
+//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+//                     img_out.cols, img_out.rows, 0,
+//                     GL_RGBA, GL_UNSIGNED_BYTE, img_out.data);
+//    } else {
+//        compose(mWindowWidth, mWindowHeight, pComposeData);
+//        glBindTexture(GL_TEXTURE_2D, pBeanProcess->mComposeTextureId);
+//        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+//                        img_out.cols, img_out.rows,
+//                        GL_RGBA, GL_UNSIGNED_BYTE, img_out.data);
+//    }
+//}
+//
+//void GLRenderer::initCompose(GLuint w, GLuint h) {
+//    // init
+//    //需要参数，从文件读取
+//    GLuint totalSize = 0;
+//    GLuint unitSize = 0;
+//    GLuint bufSize = 0;
+//    File *file = new File((char *) "/storage/emulated/0/Movies/parameter");
+//    file->getBufferSize(&totalSize, &unitSize);
+//    LOGD("[File]parameter size %d, %d", totalSize, unitSize);
+//    double *parameter = (double *) malloc(totalSize * sizeof(double));
+//    file->getBuffer(parameter, &totalSize, &unitSize, &bufSize);
+//
+//
+//    //读取保存的参数
+//    Point2f center_all_1, center_all_2;        //两个镜头中心参数
+//    float rad_all_1, rad_all_2;                //镜头有效区域半径参数
+//    Mat RotationMatrix(3, 3, CV_64FC1);        //3D 点标定外参 旋转
+//    Vec3d TMatrix;                             //3D 点标定外参 平移
+//    double pdK;                                //3D 点标定外参 缩放
+//
+//    center_all_1 = Point2f((float) parameter[0], (float) parameter[1]);
+//    rad_all_1 = (float) parameter[2];
+//    center_all_2 = Point2f((float) parameter[3], (float) parameter[4]);
+//    rad_all_2 = (float) parameter[5];
+//    RotationMatrix.at<double>(0, 0) = parameter[6];
+//    RotationMatrix.at<double>(0, 1) = parameter[7];
+//    RotationMatrix.at<double>(0, 2) = parameter[8];
+//    RotationMatrix.at<double>(1, 0) = parameter[9];
+//    RotationMatrix.at<double>(1, 1) = parameter[10];
+//    RotationMatrix.at<double>(1, 2) = parameter[11];
+//    RotationMatrix.at<double>(2, 0) = parameter[12];
+//    RotationMatrix.at<double>(2, 1) = parameter[13];
+//    RotationMatrix.at<double>(2, 2) = parameter[14];
+//    TMatrix[0] = parameter[15];
+//    TMatrix[1] = parameter[16];
+//    TMatrix[2] = parameter[17];
+//    pdK = parameter[18];
+//
+//    Generate_fusion_area_init(
+//            Size(w, h),
+//            center_all_1, center_all_2,          //两个镜头中心参数
+//            rad_all_1, rad_all_2,                //镜头有效区域半径参数
+//            RotationMatrix, TMatrix, pdK,        //3D 点标定外参
+//            &imapx_roi0,
+//            &imapy_roi0,                         //imag_0 经纬展开 map
+//            &imapx_roi1,
+//            &imapy_roi1,                         //imag_1 经纬展开 map
+//            &im);                                //融合区 Mark
+//}
+//
+//void GLRenderer::compose(GLuint w, GLuint h, GLubyte *buffer) {
+//    //加载图片
+//    Mat imageA = Mat(w, h, CV_8UC3, buffer);
+//    if (imageA.empty()) {
+//        LOGE("[Picture:prepareDraw]Can not load image.");
+//        return;
+//    }
+//    LOGD("imageA (%d, %d)", imageA.cols, imageA.rows);
+//    GLuint64 lastTime = getCurrentTimeMs();
+//    //生成图片
+//    Generate_fusion_area(
+//            Size(imageA.cols, imageA.rows),
+//            imageA,                //输入原图片
+//            imapx_roi0,
+//            imapy_roi0,                    //imageA 经纬展开 map
+//            imapx_roi1,
+//            imapy_roi1,                    //imageB 经纬展开 map
+//            im,                            //融合区 Mark
+//            &img_out);
+//    LOGD("[Picture:Generate_fusion_area] %dms", (GLuint) (getCurrentTimeMs() - lastTime));
+//    LOGD("img_out (%d, %d)", img_out.cols, img_out.rows);
+//}
 
 void GLRenderer::loadShader() {
-    pBeanProcess->mProgramHandle = createProgram(gOriVertexShader, gOriFragmentShader);
-    // 获取投影、Camera、变换句柄
-    pBeanProcess->mProjectionHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
-                                                           "projection");
-    pBeanProcess->mCameraHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
-                                                       "camera");
-    pBeanProcess->mTransformHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
-                                                          "transform");
-    pBeanProcess->mLightHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
-                                                      "light");
     pBeanDisplay->mProgramHandle = createProgram(gRectVertexShader, gRectFragmentShader);
     LOGI("[GLRenderer:loadShader]pBeanDisplay->mProgramHandle=%d", pBeanDisplay->mProgramHandle);
     LOGI("[GLRenderer:loadShader]pBeanProcess->mProgramHandle=%d", pBeanProcess->mProgramHandle);
 }
 
 void GLRenderer::configTexture(GLuint w, GLuint h) {
-    // 绑定纹理,之后任何的纹理指令都可以配置当前绑定的纹理
-    glBindTexture(pBeanOriginal->eTextureTarget, pBeanOriginal->mTextureId);
-    // 纹理过滤
-    // GL_NEAREST 当前像素值
-    // GL_LINEAR 当前像素附近颜色的混合色
-    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // 纹理剩余位置显示处理
-    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(pBeanOriginal->eTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
     // 绑定纹理,之后任何的纹理指令都可以配置当前绑定的纹理
     glBindTexture(pBeanProcess->eTextureTarget, pBeanProcess->mComposeTextureId);
     // 纹理过滤
@@ -271,15 +227,6 @@ void GLRenderer::prepareDisplayBuffer() {
     pBeanDisplay->bUpdateBuffer = GL_TRUE;
 }
 
-void GLRenderer::prepareOriginalBuffer() {
-    LOGI("[GLRenderer:prepareOriginalBuffer]");
-    pBeanOriginal->pTextureBuffer->updateBuffer((GLfloat *) rectTexture, sizeof(rectTexture),
-                                                sizeof(rectTexture[0]), 2);
-    pBeanOriginal->pVertexBuffer->updateBuffer((GLfloat *) rectVertex, sizeof(rectVertex),
-                                               sizeof(rectVertex[0]), 3);
-    pBeanOriginal->bUpdateBuffer = GL_TRUE;
-}
-
 void GLRenderer::prepareProcessBuffer() {
     LOGI("[GLRenderer:prepareProcessBuffer]");
     GLuint totalSize = 0;
@@ -301,7 +248,7 @@ void GLRenderer::prepareProcessBuffer() {
     totalSize = 0;
     unitSize = 0;
     bufSize = 0;
-    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_2");
+    file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_2");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *textureBuffer2 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(textureBuffer2, &totalSize, &unitSize, &bufSize);
@@ -414,26 +361,6 @@ void GLRenderer::prepareDisplayFBO() {
     GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (result != GL_FRAMEBUFFER_COMPLETE) {
         LOGE("[GLRenderer:prepareDisplayFBO] glCheckFramebufferStatus is fail(0x%x)", result);
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void GLRenderer::prepareProcessFBO() {
-    glGenFramebuffers(1, &mProcessFBOId);
-    glBindFramebuffer(GL_FRAMEBUFFER, mProcessFBOId);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pBeanProcess->eTextureTarget,
-                           pBeanProcess->mTextureId, 0);
-
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mWindowWidth, mWindowHeight);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-    GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (result != GL_FRAMEBUFFER_COMPLETE) {
-        LOGE("[GLRenderer:prepareProcessFBO] glCheckFramebufferStatus is fail(0x%x)", result);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

@@ -28,7 +28,6 @@ public class VideoSurfaceView extends GLSurfaceView {
     private VideoRenderer mRenderer;
     private SurfaceTexture mSurfaceTexture;
     private int mTextureId = -1;
-    private float asp = 1.777778f;
 
     public VideoSurfaceView(Context context, boolean isUseBitmap, boolean isLeft, int sm, int cs, int rr) {
         super(context);
@@ -91,7 +90,6 @@ public class VideoSurfaceView extends GLSurfaceView {
         synchronized (syncObj) {
             mFrameBmp = bmp;
             requestRender();
-            asp = 1.0f * mFrameBmp.getWidth() / mFrameBmp.getHeight();
         }
     }
 
@@ -112,10 +110,6 @@ public class VideoSurfaceView extends GLSurfaceView {
         mPicLeft.setSettingsBean(mSettingsBean);
     }
 
-    public void setAsp(float r){
-        asp = r;
-    }
-
     private class VideoRenderer implements Renderer {
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -133,13 +127,13 @@ public class VideoSurfaceView extends GLSurfaceView {
 
         @Override
         public void onDrawFrame(GL10 gl) {
-            if (!mSettingsBean.isUseBitmap() && mSurfaceTexture != null) {
+            if (!mSettingsBean.isUseBitmap() && mSurfaceTexture != null && mTextureId >= 0) {
                 synchronized (this) {
                     mSurfaceTexture.updateTexImage();
                 }
             }
             synchronized (syncObj) {
-                mPicLeft.onDrawFrame(mFrameBmp, asp);
+                mPicLeft.onDrawFrame(mFrameBmp);
 //                if(mFrameBmp != null && mFrameBmp.isRecycled()){
 //                    mFrameBmp.recycle();
 //                    mFrameBmp = null;

@@ -79,31 +79,6 @@ typedef struct {
     }
 } GLBean;
 
-const char gOriVertexShader[] =
-        "#version 300 es                                                    \n"
-        "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
-        "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec2 texCoord; \n"
-        "out vec2 TexCoord;                                                 \n"
-        "uniform mat4 projection;                                           \n"
-        "uniform mat4 camera;                                               \n"
-        "uniform mat4 transform;                                            \n"
-        "void main() {                                                      \n"
-        "  gl_Position = projection*camera*transform*vec4(position, 1.0);   \n"
-        "  TexCoord = vec2(texCoord.s, 1.0-texCoord.t);                     \n"
-        "}\n";
-
-const char gOriFragmentShader[] =
-        "#version 300 es                        \n"
-        "precision mediump float;               \n"
-        "in vec2 TexCoord;                      \n"
-        "uniform sampler2D tTexture;            \n"
-        "uniform vec3 light;                    \n"
-        "out vec4 color;                        \n"
-        "void main() {                          \n"
-        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
-        "}\n";
-
-
 const char gRectVertexShader[] =
         "#version 300 es                                                    \n"
         "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
@@ -205,7 +180,6 @@ public:
 
 protected:
     GLBean *pBeanProcess;
-    GLBean *pBeanOriginal;
     GLuint mWindowWidth;
     GLuint mWindowHeight;
 
@@ -213,23 +187,18 @@ protected:
 
     virtual void prepareDraw(Bitmap *bmp);
 
+    virtual GLuint updateTextureAuto();
+
 private :
     SettingsBean *mSettingsBean;
     GLBean *pBeanDisplay;
     GLuint mDisplayFBOId;
-    GLuint mProcessFBOId;
-    GLboolean isFirstFrame;
-    GLubyte *pComposeData;
 
     void configTexture(GLuint w, GLuint h);
 
     void prepareDisplayFBO();
 
-    void prepareProcessFBO();
-
-    void prepareComposeTexture();
-
-    virtual void prepareOriginalBuffer();
+//    void prepareComposeTexture();
 
     void prepareDisplayBuffer();
 
@@ -239,13 +208,13 @@ private :
 
     void draw(GLBean *glBean);
 
-    //初始化参数
-    Mat imapx_roi0, imapy_roi0;     //imag_0 经纬展开 map
-    Mat imapx_roi1, imapy_roi1;     //imag_1 经纬展开 map
-    Mat im, img_out;
-
-    void initCompose(GLuint w, GLuint h);
-    void compose(GLuint w, GLuint h, GLubyte *buffer);
+//    //初始化参数
+//    Mat imapx_roi0, imapy_roi0;     //imag_0 经纬展开 map
+//    Mat imapx_roi1, imapy_roi1;     //imag_1 经纬展开 map
+//    Mat im, img_out;
+//
+//    void initCompose(GLuint w, GLuint h);
+//    void compose(GLuint w, GLuint h, GLubyte *buffer);
 };
 
 #endif //GL_RENDERER_H
