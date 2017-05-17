@@ -4,7 +4,7 @@
 #include <jni.h>
 #include "gl/gl_renderer.h"
 #include "gl/gl_picture.h"
-#include "gl/gl_video.h"
+#include "gl/gl_yuv.h"
 #include "bean/bean.h"
 #include "transform/transform.h"
 #include "security/licence.h"

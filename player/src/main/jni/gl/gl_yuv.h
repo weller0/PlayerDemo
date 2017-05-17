@@ -1,17 +1,19 @@
-#ifndef GL_PICTURE_H
-#define GL_PICTURE_H
+#ifndef GL_PICTURE_YUV_H
+#define GL_PICTURE_YUV_H
 
 #include <GLES3/gl3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+#include <dlfcn.h>
+#include "libavutil/frame.h"
 #include "gl/gl_renderer.h"
 #include "gl/gl_bitmap.h"
 #include "bean/bean_base.h"
 #include "file/file.h"
 #include "log.h"
-const char gPicVertexShader[] =
+
+const char gYuvVertexShader[] =
         "#version 300 es                                                    \n"
         "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
         "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec2 texCoord; \n"
@@ -24,7 +26,7 @@ const char gPicVertexShader[] =
         "  TexCoord = vec2(texCoord.s, 1.0-texCoord.t);                     \n"
         "}\n";
 
-const char gPicFragmentShader[] =
+const char gYuvFragmentShader[] =
         "#version 300 es                        \n"
         "precision mediump float;               \n"
         "in vec2 TexCoord;                      \n"
@@ -35,20 +37,31 @@ const char gPicFragmentShader[] =
         "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
         "}\n";
 
-class Picture : public GLRenderer {
+class PictureYuv : public GLRenderer {
 public:
-    Picture(TransformBean *transformBean, SettingsBean *settingsBean);
+    PictureYuv(TransformBean *transformBean, SettingsBean *settingsBean);
 
-    ~Picture();
+    ~PictureYuv();
 
 protected:
     void loadShader();
 
     GLboolean prepareDraw(Bitmap *bmp);
 
+    GLuint updateTextureAuto();
+
 private:
     GLboolean bFirstFrame;
     SettingsBean *mSettingsBean;
+
+    pthread_mutex_t mutex;
+    void *pSO;
+    AVFrame * (*funcGetFrame)(void);
+    AVFrame *pFrame;
+
+    GLuint mTextureY, mTextureU, mTextureV;
+
+    void createTextureForYUV();
 };
 
-#endif //GL_PICTURE_H
+#endif //GL_PICTURE_YUV_H

@@ -26,13 +26,18 @@ void Picture::loadShader() {
     LOGI("[Picture:loadShader]pBeanProcess->mProgramHandle=%d", pBeanProcess->mProgramHandle);
 }
 
-void Picture::prepareDraw(Bitmap *bmp) {
-    if (bFirstFrame && bmp != NULL) {
-        bFirstFrame = GL_FALSE;
-        glBindTexture(pBeanProcess->eTextureTarget, pBeanProcess->mTextureId);
-        glTexImage2D(pBeanProcess->eTextureTarget, 0, GL_RGBA,
-                     bmp->bitmapInfo.width, bmp->bitmapInfo.height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, bmp->pixels);
+GLboolean Picture::prepareDraw(Bitmap *bmp) {
+    if (bmp != NULL) {
+        if (bFirstFrame) {
+            bFirstFrame = GL_FALSE;
+            glBindTexture(pBeanProcess->eTextureTarget, pBeanProcess->mTextureId);
+            glTexImage2D(pBeanProcess->eTextureTarget, 0, GL_RGBA,
+                         bmp->bitmapInfo.width, bmp->bitmapInfo.height, 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE, bmp->pixels);
+        }
+        return GL_TRUE;
+    } else {
+        return GL_FALSE;
     }
 }
 

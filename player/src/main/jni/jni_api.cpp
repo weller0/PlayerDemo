@@ -1,7 +1,4 @@
 #include "jni_api.h"
-#include <pthread.h>
-#include <dlfcn.h>
-#include "libavutil/frame.h"
 
 extern "C" {
 GLRenderer *pGLDisplay = NULL;
@@ -9,11 +6,6 @@ Transform *mTransform = NULL;
 Bean *mBean = NULL;
 
 jboolean bHaveLicence = JNI_FALSE;
-
-pthread_mutex_t mutex;
-void *pSO;
-AVFrame * (*funcGetFrame)(void);
-AVFrame *pFrame;
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
@@ -66,8 +58,6 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
             pGLDisplay->onDrawFrame(NULL);
         }
     }
-
-    pFrame = funcGetFrame();
 }
 
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeSetSettingsBean(JNIEnv *env,
@@ -91,20 +81,8 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
     if (mBean->getSettingsBean()->isUseBitmap) {
         pGLDisplay = new Picture(mBean->getTransformBean(), mBean->getSettingsBean());
     } else {
-        pGLDisplay = new Video(mBean->getTransformBean(), mBean->getSettingsBean());
+        pGLDisplay = new PictureYuv(mBean->getTransformBean(), mBean->getSettingsBean());
     }
-
-    pthread_mutex_init(&mutex, NULL);
-    pSO = dlopen("/data/data/com.wq.playerdemo/lib/libijkplayer.so", RTLD_NOW);
-    if(pSO == NULL){
-        LOGE("[jin_api]load libijkplayer.so from lib  fail!");
-        pSO = dlopen("/data/data/com.wq.playerdemo/lib64/libijkplayer.so", RTLD_NOW);
-        if(pSO == NULL){
-            LOGE("[jin_api]load libijkplayer.so from lib64  fail!");
-            exit(0);
-        }
-    }
-    funcGetFrame = (AVFrame * (*)())dlsym(pSO, "ijkmp_get_frame");
 }
 
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
@@ -120,8 +98,6 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
     if (mBean != NULL) {
         delete mBean;
     }
-
-    pthread_mutex_destroy(&mutex);
 }
 
 jboolean JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnTouch(JNIEnv *env,

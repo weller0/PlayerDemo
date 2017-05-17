@@ -62,7 +62,7 @@ void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
 void GLRenderer::onDrawFrame(Bitmap *bmp) {
     updateBuffer(pBeanProcess);
     updateBuffer(pBeanDisplay);
-    prepareDraw(bmp);
+    if(!prepareDraw(bmp)) return;
 
     glBindFramebuffer(GL_FRAMEBUFFER, mDisplayFBOId);
     glEnable(GL_DEPTH_TEST);
@@ -232,7 +232,7 @@ void GLRenderer::prepareProcessBuffer() {
     GLuint totalSize = 0;
     GLuint unitSize = 0;
     GLuint bufSize = 0;
-    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_1");
+    File *file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_0");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *textureBuffer1 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(textureBuffer1, &totalSize, &unitSize, &bufSize);
@@ -248,7 +248,7 @@ void GLRenderer::prepareProcessBuffer() {
     totalSize = 0;
     unitSize = 0;
     bufSize = 0;
-    file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_2");
+    file = new File((char *) "/storage/emulated/0/Movies/texcoord_buffer_0");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *textureBuffer2 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(textureBuffer2, &totalSize, &unitSize, &bufSize);
@@ -265,7 +265,7 @@ void GLRenderer::prepareProcessBuffer() {
     totalSize = 0;
     unitSize = 0;
     bufSize = 0;
-    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_1");
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_0");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *vertexBuffer1 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(vertexBuffer1, &totalSize, &unitSize, &bufSize);
@@ -281,7 +281,7 @@ void GLRenderer::prepareProcessBuffer() {
     totalSize = 0;
     unitSize = 0;
     bufSize = 0;
-    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_2");
+    file = new File((char *) "/storage/emulated/0/Movies/vertex_buffer_0");
     file->getBufferSize(&totalSize, &unitSize);
     GLfloat *vertexBuffer2 = (GLfloat *) malloc(totalSize * sizeof(GLfloat));
     file->getBuffer(vertexBuffer2, &totalSize, &unitSize, &bufSize);
@@ -365,7 +365,8 @@ void GLRenderer::prepareDisplayFBO() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void GLRenderer::prepareDraw(Bitmap *bmp) {
+GLboolean  GLRenderer::prepareDraw(Bitmap *bmp) {
+    return GL_TRUE;
 }
 
 void GLRenderer::draw(GLBean *glBean) {

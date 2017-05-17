@@ -124,32 +124,20 @@ const GLfloat rectTexture[][8] = {
 
 const GLfloat videoVertex[][12] = {
         {
-                -1.55,   -0.5, -1,
-                -1.55,   0.5, -1,
-                -0.55,  -0.5, -1,
-                -0.55,  0.5, -1,
+                -1.05,   -0.5, -1,
+                -1.05,   0.5, -1,
+                -0.05,  -0.5, -1,
+                -0.05,  0.5, -1,
         },
         {
-                -0.5, -0.5, -1,
-                -0.5, 0.5, -1,
-                0.5, -0.5, -1,
-                0.5, 0.5, -1,
-        },
-        {
-                0.55,    -0.5, -1,
-                0.55,    0.5, -1,
-                1.55,   -0.5, -1,
-                1.55,   0.5, -1,
+                0.05,    -0.5, -1,
+                0.05,    0.5, -1,
+                1.05,   -0.5, -1,
+                1.05,   0.5, -1,
         },
 };
 
 const GLfloat videoTexture[][8] = {
-        {
-                0.0, 0.0,
-                0.0, 1.0,
-                1.0, 0.0,
-                1.0, 1.0,
-        },
         {
                 0.0, 0.0,
                 0.0, 1.0,
@@ -185,7 +173,7 @@ protected:
 
     virtual void loadShader();
 
-    virtual void prepareDraw(Bitmap *bmp);
+    virtual GLboolean prepareDraw(Bitmap *bmp);
 
     virtual GLuint updateTextureAuto();
 
