@@ -177,6 +177,10 @@ protected:
 
     virtual GLuint updateTextureAuto();
 
+    virtual GLboolean useYUVDraw();
+
+    virtual void drawForYUV(GLBean *glBean);
+
 private :
     SettingsBean *mSettingsBean;
     GLBean *pBeanDisplay;

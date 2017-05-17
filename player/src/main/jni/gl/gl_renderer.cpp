@@ -62,13 +62,17 @@ void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
 void GLRenderer::onDrawFrame(Bitmap *bmp) {
     updateBuffer(pBeanProcess);
     updateBuffer(pBeanDisplay);
-    if(!prepareDraw(bmp)) return;
+    if (!prepareDraw(bmp)) return;
 
     glBindFramebuffer(GL_FRAMEBUFFER, mDisplayFBOId);
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    draw(pBeanProcess);
+    if (useYUVDraw()) {
+        drawForYUV(pBeanProcess);
+    } else {
+        draw(pBeanProcess);
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
@@ -79,6 +83,14 @@ void GLRenderer::onDrawFrame(Bitmap *bmp) {
 
 GLuint GLRenderer::updateTextureAuto() {
     return pBeanProcess->mTextureId;
+}
+
+void GLRenderer::drawForYUV(GLBean *glBean) {
+
+}
+
+GLboolean GLRenderer::useYUVDraw() {
+    return GL_FALSE;
 }
 
 //void GLRenderer::prepareComposeTexture() {
