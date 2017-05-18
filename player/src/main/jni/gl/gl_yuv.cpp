@@ -1,5 +1,4 @@
 #include "gl/gl_yuv.h"
-#include "gl_renderer.h"
 
 PictureYuv::PictureYuv(TransformBean *transformBean, SettingsBean *settingsBean)
         : GLRenderer(transformBean, settingsBean) {
@@ -38,61 +37,61 @@ void PictureYuv::loadShader() {
                                                           "transform");
     pBeanProcess->mLightHandle = glGetUniformLocation(pBeanProcess->mProgramHandle,
                                                       "light");
-    mTexHandleY = glGetUniformLocation(pBeanProcess->mProgramHandle, "tex_y");
-    mTexHandleU = glGetUniformLocation(pBeanProcess->mProgramHandle, "tex_u");
-    mTexHandleV = glGetUniformLocation(pBeanProcess->mProgramHandle, "tex_v");
+//    mTexHandleY = glGetUniformLocation(pBeanProcess->mProgramHandle, "tex_y");
+//    mTexHandleU = glGetUniformLocation(pBeanProcess->mProgramHandle, "tex_u");
+//    mTexHandleV = glGetUniformLocation(pBeanProcess->mProgramHandle, "tex_v");
     LOGI("[PictureYuv:loadShader]pBeanProcess->mProgramHandle=%d", pBeanProcess->mProgramHandle);
 }
 
 GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
     pFrame = funcGetFrame();
     if (pFrame != NULL) {
-        LOGD("[PictureYuv:prepareDraw]frame (%d, %d)", pFrame->width, pFrame->height);
+        LOGD("[PictureYuv:prepareDraw]frame (%d, %d) %ld", pFrame->width, pFrame->height);
         if (bFirstFrame) {
             bFirstFrame = GL_FALSE;
-            createTextureForYUV();
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextureY);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+//            createTextureForYUV();
+//            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, pBeanProcess->mTextureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                          pFrame->width, pFrame->height, 0,
-                         GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                         GL_RGB, GL_UNSIGNED_BYTE,
                          pFrame->data);
 
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, mTextureU);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                         pFrame->width / 2, pFrame->height / 2, 0,
-                         GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                         pFrame->data + pFrame->width * pFrame->height);
+//            glActiveTexture(GL_TEXTURE1);
+//            glBindTexture(GL_TEXTURE_2D, mTextureU);
+//            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+//                         pFrame->width / 2, pFrame->height / 2, 0,
+//                         GL_LUMINANCE, GL_UNSIGNED_BYTE,
+//                         pFrame->data + pFrame->width * pFrame->height);
 
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, mTextureV);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                         pFrame->width / 2, pFrame->height / 2, 0,
-                         GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                         pFrame->data + pFrame->width * pFrame->height * 5 / 4);
+//            glActiveTexture(GL_TEXTURE2);
+//            glBindTexture(GL_TEXTURE_2D, mTextureV);
+//            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+//                         pFrame->width / 2, pFrame->height / 2, 0,
+//                         GL_LUMINANCE, GL_UNSIGNED_BYTE,
+//                         pFrame->data + pFrame->width * pFrame->height * 5 / 4);
 
         } else {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextureY);
+//            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, pBeanProcess->mTextureId);
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                             pFrame->width, pFrame->height,
-                            GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                            GL_RGB, GL_UNSIGNED_BYTE,
                             pFrame->data);
 
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, mTextureU);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            pFrame->width / 2, pFrame->height / 2,
-                            GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                            pFrame->data + pFrame->width * pFrame->height);
-
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, mTextureV);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            pFrame->width / 2, pFrame->height / 2,
-                            GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                            pFrame->data + pFrame->width * pFrame->height * 5 / 4);
+//            glActiveTexture(GL_TEXTURE1);
+//            glBindTexture(GL_TEXTURE_2D, mTextureU);
+//            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+//                            pFrame->width / 2, pFrame->height / 2,
+//                            GL_LUMINANCE, GL_UNSIGNED_BYTE,
+//                            pFrame->data + pFrame->width * pFrame->height);
+//
+//            glActiveTexture(GL_TEXTURE2);
+//            glBindTexture(GL_TEXTURE_2D, mTextureV);
+//            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+//                            pFrame->width / 2, pFrame->height / 2,
+//                            GL_LUMINANCE, GL_UNSIGNED_BYTE,
+//                            pFrame->data + pFrame->width * pFrame->height * 5 / 4);
         }
         return GL_TRUE;
     } else {
@@ -139,19 +138,19 @@ void PictureYuv::drawForYUV(GLBean *glBean) {
         //if (glBean->mComposeTextureId != 0 && i > 0) {
         //    glBindTexture(glBean->eTextureTarget, glBean->mComposeTextureId);
        // } else {
-            //glBindTexture(glBean->eTextureTarget, glBean->mTextureId);
+            glBindTexture(glBean->eTextureTarget, glBean->mTextureId);
             // bind textures
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextureY);
-            glUniform1i(mTexHandleY, 0);
-
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, mTextureU);
-            glUniform1i(mTexHandleU, 1);
-
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, mTextureV);
-            glUniform1i(mTexHandleV, 2);
+//            glActiveTexture(GL_TEXTURE0);
+//            glBindTexture(GL_TEXTURE_2D, mTextureY);
+//            glUniform1i(mTexHandleY, 0);
+//
+//            glActiveTexture(GL_TEXTURE1);
+//            glBindTexture(GL_TEXTURE_2D, mTextureU);
+//            glUniform1i(mTexHandleU, 1);
+//
+//            glActiveTexture(GL_TEXTURE2);
+//            glBindTexture(GL_TEXTURE_2D, mTextureV);
+//            glUniform1i(mTexHandleV, 2);
        // }
         glDrawArrays(GL_TRIANGLE_STRIP, 0, glBean->pVertexBuffer->getBuffer(i)->pointSize);
         // 解绑VAO
