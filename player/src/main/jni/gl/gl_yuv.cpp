@@ -46,7 +46,10 @@ void PictureYuv::loadShader() {
 GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
     pFrame = funcGetFrame();
     if (pFrame != NULL) {
-        LOGD("[PictureYuv:prepareDraw]frame (%d, %d) %ld", pFrame->width, pFrame->height);
+        LOGD("[PictureYuv:prepareDraw]frame (%d, %d)", pFrame->width, pFrame->height);
+        Mat yuvImg = Mat(pFrame->height*3/2, pFrame->width, CV_8UC3, pFrame->data);
+        Mat bgrImg;
+        cvtColor(yuvImg, bgrImg, CV_YUV2BGR_NV21);
         if (bFirstFrame) {
             bFirstFrame = GL_FALSE;
 //            createTextureForYUV();
@@ -55,7 +58,7 @@ GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                          pFrame->width, pFrame->height, 0,
                          GL_RGB, GL_UNSIGNED_BYTE,
-                         pFrame->data);
+                         bgrImg.data);
 
 //            glActiveTexture(GL_TEXTURE1);
 //            glBindTexture(GL_TEXTURE_2D, mTextureU);
@@ -77,7 +80,7 @@ GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                             pFrame->width, pFrame->height,
                             GL_RGB, GL_UNSIGNED_BYTE,
-                            pFrame->data);
+                            bgrImg.data);
 
 //            glActiveTexture(GL_TEXTURE1);
 //            glBindTexture(GL_TEXTURE_2D, mTextureU);
