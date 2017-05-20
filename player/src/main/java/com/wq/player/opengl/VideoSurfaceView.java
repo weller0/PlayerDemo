@@ -12,6 +12,8 @@ import com.wq.player.L;
 import com.wq.player.bean.SettingsBean;
 import com.wq.player.ndk.NdkPicLeft;
 
+import java.io.File;
+
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
@@ -47,6 +49,7 @@ public class VideoSurfaceView extends GLSurfaceView {
         mSettingsBean.setShowMode(sm);
         mSettingsBean.setCtrlStyle(cs);
         mSettingsBean.setResolutionRatio(rr);
+        mSettingsBean.setAppPath((new File(getContext().getPackageCodePath()).getParent()));
         mPicLeft = new NdkPicLeft(mSettingsBean);
 
         initEGL(false, 0, 0);

@@ -14,6 +14,7 @@ jmethodID midIsUseBitmap;
 jmethodID midCtrlStyle;
 jmethodID midShowMode;
 jmethodID midResolutionRatio;
+jmethodID midAppPath;
 
 extern "C" {
 // left

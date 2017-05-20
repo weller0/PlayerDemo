@@ -7,22 +7,30 @@ PictureYuv::PictureYuv(TransformBean *transformBean, SettingsBean *settingsBean)
     mSettingsBean = settingsBean;
 
     pthread_mutex_init(&mutex, NULL);
-    pSO = dlopen("/data/data/com.wq.playerdemo/lib/libijkplayer.so", RTLD_NOW);
+    char so32Path[256] = {0};
+    sprintf(so32Path, "%s/lib/arm/libijkplayer.so", settingsBean->mAppPath);
+    pSO = dlopen(so32Path, RTLD_NOW);
     if (pSO == NULL) {
-        LOGE("[jin_api]load libijkplayer.so from lib  fail!");
-        pSO = dlopen("/data/data/com.wq.playerdemo/lib64/libijkplayer.so", RTLD_NOW);
+        LOGE("[PictureYuv]%s", dlerror());
+        char so64Path[256] = {0};
+        sprintf(so64Path, "%s/lib/arm64/libijkplayer.so", settingsBean->mAppPath);
+        pSO = dlopen(so64Path, RTLD_NOW);
         if (pSO == NULL) {
-            LOGE("[jin_api]load libijkplayer.so from lib64  fail!");
-            exit(0);
+            LOGE("[PictureYuv]%s", dlerror());
         }
     }
-    funcGetFrame = (AVFrame *(*)()) dlsym(pSO, "ijkmp_get_frame");
+    if(pSO != NULL) {
+        funcGetFrame = (AVFrame *(*)()) dlsym(pSO, "ijkmp_get_frame");
+    }
 }
 
 PictureYuv::~PictureYuv() {
     LOGI("[PictureYuv] -");
 
     pthread_mutex_destroy(&mutex);
+    if(pSO) {
+        dlclose(pSO);
+    }
 }
 
 void PictureYuv::loadShader() {
@@ -44,12 +52,14 @@ void PictureYuv::loadShader() {
 }
 
 GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
+    if(pSO == NULL) return GL_FALSE;
     pFrame = funcGetFrame();
     if (pFrame != NULL) {
-        LOGD("[PictureYuv:prepareDraw]frame (%d, %d)", pFrame->width, pFrame->height);
-        Mat yuvImg = Mat(pFrame->height*3/2, pFrame->width, CV_8UC3, pFrame->data);
-        Mat bgrImg;
-        cvtColor(yuvImg, bgrImg, CV_YUV2BGR_NV21);
+        LOGI("[PictureYuv:prepareDraw]frame (%d, %d), format=%d",
+             pFrame->width, pFrame->height, pFrame->format);
+        //Mat yuvImg = Mat(pFrame->height*3/2, pFrame->width, CV_8UC3, pFrame->data);
+        //Mat bgrImg;
+        //cvtColor(yuvImg, bgrImg, CV_YUV2BGR_NV21);
         if (bFirstFrame) {
             bFirstFrame = GL_FALSE;
 //            createTextureForYUV();
@@ -58,7 +68,7 @@ GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                          pFrame->width, pFrame->height, 0,
                          GL_RGB, GL_UNSIGNED_BYTE,
-                         bgrImg.data);
+                         pFrame->data);
 
 //            glActiveTexture(GL_TEXTURE1);
 //            glBindTexture(GL_TEXTURE_2D, mTextureU);
@@ -80,7 +90,7 @@ GLboolean PictureYuv::prepareDraw(Bitmap *bmp) {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                             pFrame->width, pFrame->height,
                             GL_RGB, GL_UNSIGNED_BYTE,
-                            bgrImg.data);
+                            pFrame->data);
 
 //            glActiveTexture(GL_TEXTURE1);
 //            glBindTexture(GL_TEXTURE_2D, mTextureU);
