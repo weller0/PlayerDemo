@@ -5,6 +5,7 @@
 #include "gl/gl_renderer.h"
 #include "gl/gl_picture.h"
 #include "gl/gl_yuv.h"
+#include "gl/gl_play_yuv.h"
 #include "bean/bean.h"
 #include "transform/transform.h"
 #include "security/licence.h"
@@ -14,7 +15,6 @@ jmethodID midIsUseBitmap;
 jmethodID midCtrlStyle;
 jmethodID midShowMode;
 jmethodID midResolutionRatio;
-jmethodID midAppPath;
 
 extern "C" {
 // left

@@ -1,5 +1,4 @@
 #include "bean/bean.h"
-#include "bean_base.h"
 
 Bean::Bean(SettingsBean bean) {
     mSettingsBean = new SettingsBean();
@@ -33,7 +32,6 @@ void Bean::setSettingsBean(GLRenderer *renderer, Transform *transform, SettingsB
     mSettingsBean->mShowMode = bean.mShowMode;
     mSettingsBean->mCtrlStyle = bean.mCtrlStyle;
     mSettingsBean->mResolutionRatio = bean.mResolutionRatio;
-    mSettingsBean->mAppPath = bean.mAppPath;
 
     onSettingsChanged(renderer, &GLRenderer::onSettingsChanged, lastSM, lastRR, lastCS);
     onSettingsChanged(transform, &Transform::onSettingsChanged, lastSM, lastRR, lastCS);
@@ -53,7 +51,6 @@ void Bean::setSettingsBean(SettingsBean bean) {
     mSettingsBean->mShowMode = bean.mShowMode;
     mSettingsBean->mCtrlStyle = bean.mCtrlStyle;
     mSettingsBean->mResolutionRatio = bean.mResolutionRatio;
-    mSettingsBean->mAppPath = bean.mAppPath;
 
     LOGI("[bean:setSettingsBean]curr bean isUseBitmap:%d, left:%d, sm:%d, rr:%d, cs:%d",
          mSettingsBean->isLeft, mSettingsBean->isUseBitmap, mSettingsBean->mShowMode,

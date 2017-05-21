@@ -1,5 +1,5 @@
-#ifndef GL_PICTURE_YUV_H
-#define GL_PICTURE_YUV_H
+#ifndef GL_PLAY_YUV_H
+#define GL_PLAY_YUV_H
 
 #include <GLES3/gl3.h>
 #include <stdio.h>
@@ -13,7 +13,7 @@
 #include "file/file.h"
 #include "log.h"
 
-const char gYuvVertexShader[] =
+const char gYuvAVertexShader[] =
         "#version 300 es                                                    \n"
         "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
         "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec2 texCoord; \n"
@@ -23,32 +23,41 @@ const char gYuvVertexShader[] =
         "uniform mat4 transform;                                            \n"
         "void main() {                                                      \n"
         "  gl_Position = projection*camera*transform*vec4(position, 1.0);   \n"
-        "  TexCoord = vec2(texCoord.s, texCoord.t);                     \n"
+        "  TexCoord = vec2(texCoord.s, 1.0-texCoord.t);                     \n"
         "}\n";
 
-const char gYuvFragmentShader[] =
+const char gYuvAFragmentShader[] =
+//        "#version 300 es                        \n"
+//        "precision mediump float;               \n"
+//        "in vec2 TexCoord;                      \n"
+//        "uniform sampler2D tex_y;               \n"
+//        "uniform sampler2D tex_u;               \n"
+//        "uniform sampler2D tex_v;               \n"
+//        "uniform vec3 light;                    \n"
+//        "out vec4 color;                        \n"
+//        "void main() {                          \n"
+//        "  vec4 c = vec4((texture(tex_y, TexCoord).r - 16.0/255.0) * 1.164);\n"
+//        "  vec4 U = vec4(texture(tex_u, TexCoord).r - 128.0/255.0);\n"
+//        "  vec4 V = vec4(texture(tex_v, TexCoord).r - 128.0/255.0);\n"
+//        "  c += V * vec4(1.596, -0.813, 0.0, 0.0);  \n"
+//        "  c += U * vec4(0.0, -0.392, 2.017, 0.0);  \n"
+//        "  c.a = 1.0;                           \n"
+//        "  color = vec4(light, 1.0) * texture(tex_y, TexCoord);        \n"
+//        "}\n";
         "#version 300 es                        \n"
         "precision mediump float;               \n"
         "in vec2 TexCoord;                      \n"
-        "uniform sampler2D tex_y;               \n"
-        "uniform sampler2D tex_u;               \n"
-        "uniform sampler2D tex_v;               \n"
+        "uniform sampler2D tTexture;            \n"
         "uniform vec3 light;                    \n"
         "out vec4 color;                        \n"
         "void main() {                          \n"
-        "  vec4 c = vec4((texture(tex_y, TexCoord).r - 16.0/255.0) * 1.164);\n"
-        "  vec4 U = vec4(texture(tex_u, TexCoord).r - 128.0/255.0);\n"
-        "  vec4 V = vec4(texture(tex_v, TexCoord).r - 128.0/255.0);\n"
-        "  c += V * vec4(1.596, -0.813, 0.0, 0.0);  \n"
-        "  c += U * vec4(0.0, -0.392, 2.017, 0.0);  \n"
-        "  c.a = 1.0;                           \n"
-        "  color = vec4(light, 1.0) * c;        \n"
+        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
         "}\n";
-class PictureYuv : public GLRenderer {
+class PlayYuv : public GLRenderer {
 public:
-    PictureYuv(TransformBean *transformBean, SettingsBean *settingsBean);
+    PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean);
 
-    ~PictureYuv();
+    ~PlayYuv();
 
 protected:
     void loadShader();
@@ -59,21 +68,23 @@ protected:
 
 private:
     GLboolean bFirstFrame;
+    GLboolean bFirstFrameForCompose;
     SettingsBean *mSettingsBean;
 
     pthread_mutex_t mutex;
     void *pSO;
     AVFrame * (*funcGetFrame)(void);
-    AVFrame *pFrame;
-
-    GLuint mTextureY, mTextureU, mTextureV;
-    GLint mTexHandleY, mTexHandleU, mTexHandleV;
-
-    void createTextureForYUV();
+    AVFrame *pYuvFrame;
 
     GLboolean useYUVDraw();
 
     void drawForYUV(GLBean *glBean);
+
+    void prepareComposeTexture(Mat original);
+
+    void initCompose(GLuint w, GLuint h);
+
+    Mat compose(Mat original);
 };
 
-#endif //GL_PICTURE_YUV_H
+#endif //GL_PLAY_YUV_H

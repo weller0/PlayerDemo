@@ -30,6 +30,7 @@ LOCAL_SRC_FILES     :=  file/file.cpp               \
                         gl/gl_picture.cpp           \
                         gl/gl_video.cpp             \
                         gl/gl_yuv.cpp               \
+                        gl/gl_play_yuv.cpp          \
                         bean/float_buffer.cpp       \
                         bean/double_buffer.cpp      \
                         bean/bean.cpp               \

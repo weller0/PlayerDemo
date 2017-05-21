@@ -214,8 +214,8 @@ void GLRenderer::configTexture(GLuint w, GLuint h) {
     // 纹理剩余位置显示处理
     glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(pBeanProcess->eTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(pBeanProcess->eTextureTarget, 0, GL_RGBA,
-                 w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+//    glTexImage2D(pBeanProcess->eTextureTarget, 0, GL_RGBA,
+//                 w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glBindTexture(pBeanDisplay->eTextureTarget, pBeanDisplay->mTextureId);
     // 纹理过滤
