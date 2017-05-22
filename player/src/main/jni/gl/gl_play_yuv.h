@@ -27,32 +27,32 @@ const char gYuvAVertexShader[] =
         "}\n";
 
 const char gYuvAFragmentShader[] =
-//        "#version 300 es                        \n"
-//        "precision mediump float;               \n"
-//        "in vec2 TexCoord;                      \n"
-//        "uniform sampler2D tex_y;               \n"
-//        "uniform sampler2D tex_u;               \n"
-//        "uniform sampler2D tex_v;               \n"
-//        "uniform vec3 light;                    \n"
-//        "out vec4 color;                        \n"
-//        "void main() {                          \n"
-//        "  vec4 c = vec4((texture(tex_y, TexCoord).r - 16.0/255.0) * 1.164);\n"
-//        "  vec4 U = vec4(texture(tex_u, TexCoord).r - 128.0/255.0);\n"
-//        "  vec4 V = vec4(texture(tex_v, TexCoord).r - 128.0/255.0);\n"
-//        "  c += V * vec4(1.596, -0.813, 0.0, 0.0);  \n"
-//        "  c += U * vec4(0.0, -0.392, 2.017, 0.0);  \n"
-//        "  c.a = 1.0;                           \n"
-//        "  color = vec4(light, 1.0) * texture(tex_y, TexCoord);        \n"
-//        "}\n";
         "#version 300 es                        \n"
         "precision mediump float;               \n"
         "in vec2 TexCoord;                      \n"
-        "uniform sampler2D tTexture;            \n"
+        "uniform sampler2D tex_y;               \n"
+        "uniform sampler2D tex_u;               \n"
+        "uniform sampler2D tex_v;               \n"
         "uniform vec3 light;                    \n"
         "out vec4 color;                        \n"
         "void main() {                          \n"
-        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
+        "  vec4 c = vec4((texture(tex_y, TexCoord).r - 16.0/255.0) * 1.164);\n"
+        "  vec4 U = vec4(texture(tex_u, TexCoord).r - 128.0/255.0);\n"
+        "  vec4 V = vec4(texture(tex_v, TexCoord).r - 128.0/255.0);\n"
+        "  c += V * vec4(1.596, -0.813, 0.0, 0.0);  \n"
+        "  c += U * vec4(0.0, -0.392, 2.017, 0.0);  \n"
+        "  c.a = 1.0;                           \n"
+        "  color = vec4(light, 1.0) * c;        \n"
         "}\n";
+//        "#version 300 es                        \n"
+//        "precision mediump float;               \n"
+//        "in vec2 TexCoord;                      \n"
+//        "uniform sampler2D tTexture;            \n"
+//        "uniform vec3 light;                    \n"
+//        "out vec4 color;                        \n"
+//        "void main() {                          \n"
+//        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
+//        "}\n";
 class PlayYuv : public GLRenderer {
 public:
     PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean);
@@ -76,11 +76,14 @@ private:
     AVFrame * (*funcGetFrame)(void);
     AVFrame *pYuvFrame;
 
+    GLuint mTextureY, mTextureU, mTextureV;
+    GLuint mComposeTextureY, mComposeTextureU, mComposeTextureV;
+    GLint mTexHandleY, mTexHandleU, mTexHandleV;
     GLboolean useYUVDraw();
 
     void drawForYUV(GLBean *glBean);
 
-    void prepareComposeTexture(Mat original);
+    void prepareComposeTexture(AVFrame * frame);
 
     void initCompose(GLuint w, GLuint h);
 

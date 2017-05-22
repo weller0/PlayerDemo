@@ -31,6 +31,7 @@ typedef struct {
     GLint mTransformHandle;             // 变换矩阵的句柄
     GLint mLightHandle;                 // 变换矩阵的句柄
     GLuint mTextureId;                  //
+    GLuint mTexHandler;                 //
     GLuint mComposeTextureId;
     GLboolean bUpdateBuffer;
     GLenum eTextureTarget;
