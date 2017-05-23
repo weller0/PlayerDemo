@@ -16,6 +16,7 @@ using namespace std;
 using namespace cv::ml;
 
 
-Mat_<Vec3f> LaplacianBlend(const Mat_<Vec3f> &l, const Mat_<Vec3f> &r, const Mat_<float> &m);
+Mat_<float> LaplacianBlend_YUV420P(const Mat_<float> &l, const Mat_<float> &r,
+                                   const Mat_<float> &m);
 
 #endif /* LAPLACIANBLENDING_H_ */

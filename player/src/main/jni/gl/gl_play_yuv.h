@@ -12,6 +12,7 @@
 #include "bean/bean_base.h"
 #include "file/file.h"
 #include "log.h"
+#include "compose/Generate_fusion_area.h"
 
 const char gYuvAVertexShader[] =
         "#version 300 es                                                    \n"
@@ -85,9 +86,17 @@ private:
 
     void prepareComposeTexture(AVFrame * frame);
 
-    void initCompose(GLuint w, GLuint h);
+    void initCompose(GLint w, GLint h);
 
-    Mat compose(Mat original);
+    void compose(AVFrame * frame);
+
+    //初始化参数
+    Mat imapx_roi0, imapy_roi0;     //imag_0 经纬展开 map
+    Mat imapx_roi1, imapy_roi1;     //imag_1 经纬展开 map
+    Mat mapx_roi0_2, mapy_roi0_2;
+    Mat mapx_roi1_2, mapy_roi1_2;
+    Mat im, m_uv;
+    Mat out_y, out_u, out_v;
 };
 
 #endif //GL_PLAY_YUV_H

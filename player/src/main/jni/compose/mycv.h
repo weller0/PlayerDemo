@@ -23,6 +23,22 @@ using namespace cv;  //包含cv命名空间
 using namespace std;
 using namespace cv::ml;
 
+/*统计 yuv420p 图像数据 Y 通道图像亮度差*/
+void YUV_match_avg_yuv420p(Mat src1, Mat src2,
+                           double *alpha1Y, double *alpha2Y);
+
+void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_size,
+                                                     Point2f centerf_0, float radiusf_0,
+                                                     Mat RotateMat, Vec3d TMatrix, double dbK,
+                                                     Mat *mapx_ud, Mat *mapy_ud,
+                                                     Mat *mapx_ud_2, Mat *mapy_ud_2,
+                                                     float zoom);
+
+void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_size,
+                                                     Point2f centerf_1, float radiusf_1,
+                                                     Mat *mapx_ud, Mat *mapy_ud,
+                                                     Mat *mapx_ud_2, Mat *mapy_ud_2, float zoom);
+
 /* SRC0 生成完整映射情况 坐标变换*************************************************************************************/
 void src_0_Equirectangular_coordinate_transformation(Point2f Texture_Coordinates,
                                                      Point2f *Image_Coordinates, Size src_size,

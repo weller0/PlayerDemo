@@ -31,7 +31,7 @@ void File::getBufferSize(GLuint *totalSize, GLuint *unitSize) {
         GLuint readSize = ftell(pFile);
         GLuint currSize = readSize - alreadyReadSize;
         alreadyReadSize = readSize;
-        LOGD("tmpBuffer :\n%s", tmpBuffer);
+//        LOGD("tmpBuffer :\n%s", tmpBuffer);
         for (GLuint i = 0; i < currSize; i++) {
             char c = *(tmpBuffer + i);
             if ((c >= '0' && c <= '9') ||

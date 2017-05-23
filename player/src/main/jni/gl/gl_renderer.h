@@ -191,8 +191,6 @@ private :
 
     void prepareDisplayFBO();
 
-//    void prepareComposeTexture();
-
     void prepareDisplayBuffer();
 
     void prepareProcessBuffer();
@@ -200,14 +198,6 @@ private :
     void updateBuffer(GLBean *glBean);
 
     void draw(GLBean *glBean);
-
-//    //初始化参数
-//    Mat imapx_roi0, imapy_roi0;     //imag_0 经纬展开 map
-//    Mat imapx_roi1, imapy_roi1;     //imag_1 经纬展开 map
-//    Mat im, img_out;
-//
-//    void initCompose(GLuint w, GLuint h);
-//    void compose(GLuint w, GLuint h, GLubyte *buffer);
 };
 
 #endif //GL_RENDERER_H

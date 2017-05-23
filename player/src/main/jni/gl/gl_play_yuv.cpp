@@ -52,9 +52,6 @@ GLuint PlayYuv::updateTextureAuto() {
 GLboolean PlayYuv::prepareDraw(Bitmap *bmp) {
     pYuvFrame = funcGetFrame();
     if (pYuvFrame != NULL && pYuvFrame->width > 0) {
-        Mat y = Mat(pYuvFrame->width, pYuvFrame->height, CV_8UC3, pYuvFrame->data[0]);
-        Mat u = Mat(pYuvFrame->width / 2, pYuvFrame->height / 2, CV_8UC3, pYuvFrame->data[1]);
-        Mat v = Mat(pYuvFrame->width / 2, pYuvFrame->height / 2, CV_8UC3, pYuvFrame->data[2]);
         prepareComposeTexture(pYuvFrame);
 
         if (bFirstFrame) {
@@ -185,7 +182,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
     if (bFirstFrameForCompose) {
         bFirstFrameForCompose = GL_FALSE;
         initCompose(frame->width, frame->height);
-//        Mat out = compose(y);
+        compose(frame);
 
         glGenTextures(1, &mComposeTextureY);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureY);
@@ -195,7 +192,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                      frame->width, frame->height, 0,
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[0]);
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.data);
 
         glGenTextures(1, &mComposeTextureU);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureU);
@@ -205,7 +202,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                      frame->width / 2, frame->height / 2, 0,
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[1]);
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.data);
 
         glGenTextures(1, &mComposeTextureV);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureV);
@@ -215,30 +212,88 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                      frame->width / 2, frame->height / 2, 0,
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[2]);
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.data);
     } else {
-//        Mat out = compose(NULL);
+        compose(frame);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureY);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         frame->width, frame->height,
-                        GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[0]);
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.data);
 
         glBindTexture(GL_TEXTURE_2D, mComposeTextureU);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         frame->width / 2, frame->height / 2,
-                        GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[1]);
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.data);
 
         glBindTexture(GL_TEXTURE_2D, mComposeTextureV);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         frame->width / 2, frame->height / 2,
-                        GL_LUMINANCE, GL_UNSIGNED_BYTE, frame->data[2]);
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.data);
     }
 }
 
-void PlayYuv::initCompose(GLuint w, GLuint h) {
+void PlayYuv::initCompose(GLint w, GLint h) {
+    // init
+    //需要参数，从文件读取
+    GLuint totalSize = 0;
+    GLuint unitSize = 0;
+    GLuint bufSize = 0;
+    File *file = new File((char *) "/storage/emulated/0/Movies/parameter");
+    file->getBufferSize(&totalSize, &unitSize);
+    LOGD("[File]parameter size %d, %d", totalSize, unitSize);
+    double *parameter = (double *) malloc(totalSize * sizeof(double));
+    file->getBuffer(parameter, &totalSize, &unitSize, &bufSize);
 
+
+    //读取保存的参数
+    Point2f center_all_1, center_all_2;        //两个镜头中心参数
+    float rad_all_1, rad_all_2;                //镜头有效区域半径参数
+    Mat RotationMatrix(3, 3, CV_64FC1);        //3D 点标定外参 旋转
+    Vec3d TMatrix;                             //3D 点标定外参 平移
+    double pdK;                                //3D 点标定外参 缩放
+
+    center_all_1 = Point2f((float) parameter[0], (float) parameter[1]);
+    rad_all_1 = (float) parameter[2];
+    center_all_2 = Point2f((float) parameter[3], (float) parameter[4]);
+    rad_all_2 = (float) parameter[5];
+    RotationMatrix.at<double>(0, 0) = parameter[6];
+    RotationMatrix.at<double>(0, 1) = parameter[7];
+    RotationMatrix.at<double>(0, 2) = parameter[8];
+    RotationMatrix.at<double>(1, 0) = parameter[9];
+    RotationMatrix.at<double>(1, 1) = parameter[10];
+    RotationMatrix.at<double>(1, 2) = parameter[11];
+    RotationMatrix.at<double>(2, 0) = parameter[12];
+    RotationMatrix.at<double>(2, 1) = parameter[13];
+    RotationMatrix.at<double>(2, 2) = parameter[14];
+    TMatrix[0] = parameter[15];
+    TMatrix[1] = parameter[16];
+    TMatrix[2] = parameter[17];
+    pdK = parameter[18];
+
+    Generate_fusion_area_init_YUV420SP(
+            Size(w, h),
+            center_all_1, center_all_2,          //两个镜头中心参数
+            rad_all_1, rad_all_2,                //镜头有效区域半径参数
+            RotationMatrix, TMatrix, pdK,        //3D 点标定外参
+            &imapx_roi0, &imapy_roi0,            //imag_0 经纬展开 map
+            &imapx_roi1, &imapy_roi1,            //imag_1 经纬展开 map
+            &mapx_roi0_2, &mapy_roi0_2,
+            &mapx_roi1_2, &mapy_roi1_2,
+            &im, &m_uv);                         //融合区 Mark
 }
 
-Mat PlayYuv::compose(Mat original) {
-    return original;
+void PlayYuv::compose(AVFrame *frame) {
+    Mat y = Mat(frame->width, frame->height, CV_8UC3, frame->data[0]);
+    Mat u = Mat(frame->width / 2, frame->height / 2, CV_8UC3, frame->data[1]);
+    Mat v = Mat(frame->width / 2, frame->height / 2, CV_8UC3, frame->data[2]);
+    Generate_fusion_area_YUV420P(
+            Size(frame->width, frame->height),
+            y, u, v,
+            imapx_roi0, imapy_roi0,
+            imapx_roi1, imapy_roi1,
+            mapx_roi0_2, mapy_roi0_2,
+            mapx_roi1_2, mapy_roi1_2,
+            im, m_uv,
+            &out_y, &out_u, &out_v
+    );
 }

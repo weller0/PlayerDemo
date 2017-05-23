@@ -193,6 +193,159 @@ void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
 #endif
 }
 /****************************************************************************************************************/
+/*统计 yuv420p 图像数据 Y 通道图像亮度差*/
+void YUV_match_avg_yuv420p(Mat src1, Mat src2,
+                           double *alpha1Y, double *alpha2Y) {
+    size_t rowNumber = src1.rows;
+    size_t colNumber = src1.cols * src1.channels();
+
+    unsigned int Y_sum_1 = 0, Y_sum_2 = 0;
+    unsigned int Pix_num = 0;
+    for (size_t i = 0; i < rowNumber; i++) {
+        uchar *data1 = src1.ptr<uchar>(i);
+        uchar *data2 = src2.ptr<uchar>(i);
+        for (size_t j = 0; j < colNumber; j++) {
+            Y_sum_1 += data1[j];
+            Y_sum_2 += data2[j];
+            Pix_num++;
+        }
+    }
+    double Yaveg = ((double) Y_sum_1 + (double) Y_sum_2) / 2.0;
+    double alphaY1 = Yaveg / (double) Y_sum_1;
+    double alphaY2 = Yaveg / (double) Y_sum_2;
+    *alpha1Y = alphaY1;
+    *alpha2Y = alphaY2;
+}
+/****************************************************************************************************************/
+
+/* SRC0 生成完整映射情况 map_roi*************************************************************************************/
+void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_size,
+                                                     Point2f centerf_0, float radiusf_0,
+                                                     Mat RotateMat, Vec3d TMatrix, double dbK,
+                                                     Mat *mapx_ud, Mat *mapy_ud,
+                                                     Mat *mapx_ud_2, Mat *mapy_ud_2,
+                                                     float zoom) {
+    int width, hight;
+    int cols, rows;        //循环变量
+
+    //原图大小
+    int src_w = src_size.width;
+    int src_h = src_size.height;
+
+    //半球投影大小
+    width = dest_size.width;
+    hight = dest_size.height;
+    int start_hight = cvRound((0.25 + 0.75 * ANGLE) * (float) hight);
+    int roi_hight = cvRound((1.0 - ANGLE) * (float) hight * 0.5);        //roi 区域的高度
+    int stop_hight = start_hight + roi_hight;//cvRound((0.75 + 0.25 * ANGLE) * (float )hight);
+    //生成的映射表
+    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
+    Mat mapy(roi_hight, width, CV_32FC1);
+
+    double *pRotateMat = RotateMat.ptr<double>(0);
+
+    for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
+    {
+        float ty = (float) rows / (float) hight;    //归一化 Y
+        for (cols = 0; cols < width; cols++)    //列循环1920 x
+        {
+            float tx = (float) cols / (float) width;        //归一化 X
+            double x = ty * cos(P2PI * tx);
+            double y = ty * sin(P2PI * tx);
+            double x2y2 = (x * x + y * y);
+            double z = 0;
+            if (x2y2 <= 1) {
+                z = sqrt(1 - x2y2);
+            }
+            double x1 = ((dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) +
+                          TMatrix[0]) * radiusf_0 + centerf_0.x) * zoom;        //只适应了原图
+            double y1 = ((dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) +
+                          TMatrix[1]) * radiusf_0 + centerf_0.y) * zoom;
+            //double z1 = (dbK*(pRotateMat[6]*x + pRotateMat[7]*y + pRotateMat[8]*z)+TMatrix[2]);
+            mapx.at<float>(rows - start_hight, cols) = (x1 > (double) src_w) ? (float) src_w
+                                                                             : (float) (x1);
+            mapy.at<float>(rows - start_hight, cols) = (y1 > (double) src_h) ? (float) src_h
+                                                                             : (float) (y1);
+        }
+    }
+    Mat mapx_2(mapx.rows / 2, mapx.cols / 2, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
+    Mat mapy_2(mapy.rows / 2, mapy.cols / 2, CV_32FC1);
+    for (rows = 0; rows < mapx.rows / 2; rows++)    //行循环1080 y
+    {
+        for (cols = 0; cols < mapx.cols / 2; cols++)    //列循环1920 x
+        {
+            mapx_2.at<float>(rows, cols) = mapx.at<float>(rows * 2, cols * 2) / 2;
+            mapy_2.at<float>(rows, cols) = mapy.at<float>(rows * 2, cols * 2) / 2;
+        }
+    }
+//    resize(mapx,mapx_2,Size(mapx.cols/2,mapx.rows/2),INTER_LINEAR );
+//    resize(mapy,mapy_2,Size(mapy.cols/2,mapy.rows/2),INTER_LINEAR );
+    *mapx_ud = mapx.clone();
+    *mapy_ud = mapy.clone();
+    *mapx_ud_2 = mapx_2.clone();
+    *mapy_ud_2 = mapy_2.clone();
+}
+/****************************************************************************************************************/
+
+/* SRC1 生成完整映射情况 map_roi*************************************************************************************/
+void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_size,
+                                                     Point2f centerf_1, float radiusf_1,
+                                                     Mat *mapx_ud, Mat *mapy_ud,
+                                                     Mat *mapx_ud_2, Mat *mapy_ud_2, float zoom) {
+    int width, hight;
+    int cols, rows;        //循环变量
+
+    //原图大小
+    int src_w = src_size.width;
+    int src_h = src_size.height;
+    //经纬图投影
+    float kx = (radiusf_1 * zoom) / ((float) src_w);
+    float dx = (centerf_1.x * zoom) / (float) src_w;
+    float ky = (radiusf_1 * zoom) / ((float) src_h);
+    float dy = (centerf_1.y * zoom) / (float) src_h;
+
+    //半球投影大小
+    width = dest_size.width;
+    hight = dest_size.height;
+    int start_hight = cvRound((1 - ANGLE) * (float) hight * 0.25);
+    int roi_hight = cvRound((1.0 - ANGLE) * (float) hight * 0.5);        //roi 区域的高度
+    int stop_hight = start_hight + roi_hight;//cvRound((1 - ANGLE) * (float )hight * 0.75);
+    //生成的映射表
+    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
+    Mat mapy(roi_hight, width, CV_32FC1);
+    vector<Point3d> P2;
+    for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
+    {
+        float ty = (1.0 - ((float) rows / (float) hight));    //归一化 Y
+        for (cols = 0; cols < width; cols++)    //列循环1920 x
+        {
+            float tx = (float) cols / (float) width;        //归一化 X
+
+            double x = ty * cos(P2PI * tx) * kx + dx;
+            double y = ty * sin(P2PI * tx) * ky + dy;
+
+            mapx.at<float>(rows - start_hight, cols) = (float) (1.0 - x) * (float) src_w;
+            mapy.at<float>(rows - start_hight, cols) = (float) (y) * (float) src_h;
+        }
+    }
+    Mat mapx_2(mapx.rows / 2, mapx.cols / 2, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
+    Mat mapy_2(mapy.rows / 2, mapy.cols / 2, CV_32FC1);
+    for (rows = 0; rows < mapx.rows / 2; rows++)    //行循环1080 y
+    {
+        for (cols = 0; cols < mapx.cols / 2; cols++)    //列循环1920 x
+        {
+            mapx_2.at<float>(rows, cols) = mapx.at<float>(rows * 2, cols * 2) / 2;
+            mapy_2.at<float>(rows, cols) = mapy.at<float>(rows * 2, cols * 2) / 2;
+        }
+    }
+//    resize(mapx,mapx_2,Size(mapx.cols/2,mapx.rows/2),INTER_LINEAR );
+//    resize(mapy,mapy_2,Size(mapy.cols/2,mapy.rows/2),INTER_LINEAR );
+    *mapx_ud = mapx.clone();
+    *mapy_ud = mapy.clone();
+    *mapx_ud_2 = mapx_2.clone();
+    *mapy_ud_2 = mapy_2.clone();
+}
+/****************************************************************************************************************/
 
 /* SRC0 生成完整映射情况 map_roi*************************************************************************************/
 void Generate_Equirectangular_src_0_map_roi(Size src_size, Size dest_size,
