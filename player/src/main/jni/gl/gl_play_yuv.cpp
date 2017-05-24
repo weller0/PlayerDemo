@@ -192,7 +192,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                      frame->width, frame->height, 0,
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.data);
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.ptr(0));
 
         glGenTextures(1, &mComposeTextureU);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureU);
@@ -202,7 +202,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                      frame->width / 2, frame->height / 2, 0,
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.data);
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.ptr(0));
 
         glGenTextures(1, &mComposeTextureV);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureV);
@@ -212,23 +212,23 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                      frame->width / 2, frame->height / 2, 0,
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.data);
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.ptr(0));
     } else {
         compose(frame);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureY);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         frame->width, frame->height,
-                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.data);
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.ptr(0));
 
         glBindTexture(GL_TEXTURE_2D, mComposeTextureU);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         frame->width / 2, frame->height / 2,
-                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.data);
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.ptr(0));
 
         glBindTexture(GL_TEXTURE_2D, mComposeTextureV);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         frame->width / 2, frame->height / 2,
-                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.data);
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.ptr(0));
     }
 }
 
@@ -283,9 +283,9 @@ void PlayYuv::initCompose(GLint w, GLint h) {
 }
 
 void PlayYuv::compose(AVFrame *frame) {
-    Mat y = Mat(frame->width, frame->height, CV_8UC3, frame->data[0]);
-    Mat u = Mat(frame->width / 2, frame->height / 2, CV_8UC3, frame->data[1]);
-    Mat v = Mat(frame->width / 2, frame->height / 2, CV_8UC3, frame->data[2]);
+    Mat y = Mat(frame->height, frame->width, CV_8UC1, frame->data[0]);
+    Mat u = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[1]);
+    Mat v = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[2]);
     Generate_fusion_area_YUV420P(
             Size(frame->width, frame->height),
             y, u, v,
