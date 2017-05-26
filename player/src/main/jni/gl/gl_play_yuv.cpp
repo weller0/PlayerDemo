@@ -9,16 +9,21 @@ PlayYuv::PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean)
     mSettingsBean = settingsBean;
 
     pthread_mutex_init(&mutex, NULL);
-    pSO = dlopen("/data/data/com.wq.playerdemo/lib/libijkplayer.so", RTLD_NOW);
+    char so32Path[256] = {0};
+    sprintf(so32Path, "%s/lib/arm/libijkplayer.so", settingsBean->mAppPath);
+    pSO = dlopen(so32Path, RTLD_NOW);
     if (pSO == NULL) {
-        LOGE("[jin_api]load libijkplayer.so from lib  fail!");
-        pSO = dlopen("/data/data/com.wq.playerdemo/lib64/libijkplayer.so", RTLD_NOW);
+        LOGE("[PictureYuv]%s", dlerror());
+        char so64Path[256] = {0};
+            sprintf(so64Path, "%s/lib/arm64/libijkplayer.so", settingsBean->mAppPath);
+            pSO = dlopen(so64Path, RTLD_NOW);
         if (pSO == NULL) {
-            LOGE("[jin_api]load libijkplayer.so from lib64  fail!");
-            exit(0);
+            LOGE("[PictureYuv]%s", dlerror());
         }
     }
-    funcGetFrame = (AVFrame *(*)()) dlsym(pSO, "ijkmp_get_frame");
+    if(pSO != NULL) {
+        funcGetFrame = (AVFrame *(*)()) dlsym(pSO, "ijkmp_get_frame");
+    }
 }
 
 PlayYuv::~PlayYuv() {

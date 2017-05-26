@@ -42,6 +42,7 @@ typedef struct {
     GLuint mShowMode;
     GLuint mCtrlStyle;
     GLuint mResolutionRatio;
+    char *mAppPath;
 } SettingsBean;
 
 typedef struct {

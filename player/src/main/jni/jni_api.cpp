@@ -14,6 +14,13 @@ SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     settingsBean.mShowMode = (GLuint) env->CallIntMethod(bean, midShowMode);
     settingsBean.mCtrlStyle = (GLuint) env->CallIntMethod(bean, midCtrlStyle);
     settingsBean.mResolutionRatio = (GLuint) env->CallIntMethod(bean, midResolutionRatio);
+    jstring path = (jstring) env->CallObjectMethod(bean, midAppPath);
+    jboolean isCopy;
+    const char *str = env->GetStringUTFChars(path, &isCopy);
+    int len = strlen(str);
+    settingsBean.mAppPath = (char *) malloc((len + 1) * sizeof(char));
+    memset(settingsBean.mAppPath, 0, (len + 1));
+    memcpy(settingsBean.mAppPath, str, len * sizeof(char));
     return settingsBean;
 }
 
@@ -76,6 +83,7 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
     midShowMode = env->GetMethodID(clsSettingsBean, "getShowMode", "()I");
     midCtrlStyle = env->GetMethodID(clsSettingsBean, "getCtrlStyle", "()I");
     midResolutionRatio = env->GetMethodID(clsSettingsBean, "getResolutionRatio", "()I");
+    midAppPath = env->GetMethodID(clsSettingsBean, "getAppPath", "()Ljava/lang/String;");
     mBean = new Bean(cpp2JavaForSettingsBean(env, bean));
     mTransform = new Transform(mBean->getTransformBean(), mBean->getSettingsBean());
     if (mBean->getSettingsBean()->isUseBitmap) {

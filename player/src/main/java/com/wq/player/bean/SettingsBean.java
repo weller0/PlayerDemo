@@ -1,7 +1,5 @@
 package com.wq.player.bean;
 
-import android.util.Log;
-
 /**
  * Created by qiangwang on 3/7/17.
  */
@@ -20,7 +18,6 @@ public class SettingsBean {
     }
 
     public void setAppPath(String appPath) {
-        Log.e("qqqq", "path="+appPath);
         mAppPath = appPath;
     }
 
