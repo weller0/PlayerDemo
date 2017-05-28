@@ -1,6 +1,8 @@
 #include <ffmpeg/libavcodec/avcodec.h>
 #include "gl/gl_play_yuv.h"
 
+#define GL_PLAY_DEBUG 0
+
 PlayYuv::PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean)
         : GLRenderer(transformBean, settingsBean) {
     LOGI("[PlayYuv] +");
@@ -15,8 +17,8 @@ PlayYuv::PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean)
     if (pSO == NULL) {
         LOGE("[PictureYuv]%s", dlerror());
         char so64Path[256] = {0};
-            sprintf(so64Path, "%s/lib/arm64/libijkplayer.so", settingsBean->mAppPath);
-            pSO = dlopen(so64Path, RTLD_NOW);
+        sprintf(so64Path, "%s/lib/arm64/libijkplayer.so", settingsBean->mAppPath);
+        pSO = dlopen(so64Path, RTLD_NOW);
         if (pSO == NULL) {
             LOGE("[PictureYuv]%s", dlerror());
         }
@@ -196,7 +198,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                     frame->width, frame->height, 0,
+                     out_y.cols, out_y.rows, 0,//frame->width, frame->height, 0,
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.ptr(0));
 
         glGenTextures(1, &mComposeTextureU);
@@ -206,7 +208,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                     frame->width / 2, frame->height / 2, 0,
+                     out_u.cols, out_u.rows, 0,
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.ptr(0));
 
         glGenTextures(1, &mComposeTextureV);
@@ -216,23 +218,23 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                     frame->width / 2, frame->height / 2, 0,
+                     out_v.cols, out_v.rows, 0,
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.ptr(0));
     } else {
         compose(frame);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureY);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                        frame->width, frame->height,
+                        out_y.cols, out_y.rows,
                         GL_LUMINANCE, GL_UNSIGNED_BYTE, out_y.ptr(0));
 
         glBindTexture(GL_TEXTURE_2D, mComposeTextureU);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                        frame->width / 2, frame->height / 2,
+                        out_u.cols, out_u.rows,
                         GL_LUMINANCE, GL_UNSIGNED_BYTE, out_u.ptr(0));
 
         glBindTexture(GL_TEXTURE_2D, mComposeTextureV);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                        frame->width / 2, frame->height / 2,
+                        out_v.cols, out_v.rows,
                         GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.ptr(0));
     }
 }
@@ -258,9 +260,9 @@ void PlayYuv::initCompose(GLint w, GLint h) {
     double pdK;                                //3D 点标定外参 缩放
 
     center_all_1 = Point2f((float) parameter[0], (float) parameter[1]);
-    rad_all_1 = (float) parameter[2];
+    rad_all_1 = (float) parameter[2] + 0.5;
     center_all_2 = Point2f((float) parameter[3], (float) parameter[4]);
-    rad_all_2 = (float) parameter[5];
+    rad_all_2 = (float) parameter[5]-0.58337;
     RotationMatrix.at<double>(0, 0) = parameter[6];
     RotationMatrix.at<double>(0, 1) = parameter[7];
     RotationMatrix.at<double>(0, 2) = parameter[8];
@@ -274,7 +276,11 @@ void PlayYuv::initCompose(GLint w, GLint h) {
     TMatrix[1] = parameter[16];
     TMatrix[2] = parameter[17];
     pdK = parameter[18];
-
+#if GL_PLAY_DEBUG
+    LOGD("[PlayYuv] initCompose Src Size (%d,%d)",w,h);
+    LOGD("[PlayYuv] initCompose center_all_1 (%f,%f) rad_all_1 %f",center_all_1.x, center_all_1.y, rad_all_1);
+    LOGD("[PlayYuv] initCompose center_all_2 (%f,%f) rad_all_2 %f",center_all_2.x, center_all_2.y, rad_all_2);
+#endif
     Generate_fusion_area_init_YUV420SP(
             Size(w, h),
             center_all_1, center_all_2,          //两个镜头中心参数
@@ -291,6 +297,8 @@ void PlayYuv::compose(AVFrame *frame) {
     Mat y = Mat(frame->height, frame->width, CV_8UC1, frame->data[0]);
     Mat u = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[1]);
     Mat v = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[2]);
+    double alpha1Y;
+    double alpha2Y;//输出两个半球亮度调整的值
     Generate_fusion_area_YUV420P(
             Size(frame->width, frame->height),
             y, u, v,
@@ -299,6 +307,11 @@ void PlayYuv::compose(AVFrame *frame) {
             mapx_roi0_2, mapy_roi0_2,
             mapx_roi1_2, mapy_roi1_2,
             im, m_uv,
-            &out_y, &out_u, &out_v
-    );
+            &alpha1Y,&alpha2Y,
+            &out_y, &out_u, &out_v);
+#if GL_PLAY_DEBUG
+    imwrite("/storage/emulated/0/Movies/out_y.jpg", out_y );
+    imwrite("/storage/emulated/0/Movies/out_u.jpg", out_u );
+    imwrite("/storage/emulated/0/Movies/out_v.jpg", out_v );
+#endif
 }

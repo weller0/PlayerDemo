@@ -10,22 +10,22 @@
 #define IWSHOW_DEBUG 0
 
 /* 外切法找圆心半径************************************************************************************************/
-void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
-    Point2f centerf_in;
-    Mat midImage;        //霍夫变换中间图
+void Circumscribe(Mat src,				//输入	原图
+                  int T,				//输入	亮度差 阈值
+                  Point2f *centerf,		//输出	中心
+                  float *radiusf,		//输出	半径
+                  int num) 				//输入	序号
+{
+    Mat midImage;        //灰度，或者其他中间处理图
     Point center;        //霍夫变换圆形参数 圆心
-
-
 
     cvtColor(src, midImage, COLOR_BGR2GRAY);    //转成灰度图
 
-    vector<int> row_max_D;
-
+    //vector<int> row_max_D;
     // 扫描行列最大亮度差
     int rowNumber = midImage.rows;
     int colNumber = midImage.cols * midImage.channels();
     int up = 0, down = 0, left = 0, right = 0;
-    //int T = 50;		//极亮度差阈值
 
     //扫描行极亮度差
     up = 0;    //初始值
@@ -36,26 +36,31 @@ void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
         for (int j = 0; j < colNumber; j++)        //扫描第 i 行，找到最大值和最小值
         {
             uchar Y = data[j];
-            if (Y > max) {
+            if (Y > max)
+            {
                 max = Y;
             }
-            if (Y < min) {
+            if (Y < min)
+            {
                 min = Y;
             }
         }
         int YD = max - min;
-        row_max_D.push_back(YD);
-        if (up != 0 && YD > T) {
+        //row_max_D.push_back(YD);
+        if (up != 0 && YD > T)
+        {
             if ((i - up) != 1)    //出现极亮度>T 的情况不连续，为躁点
             {
                 up = i;            //更新 up 为新值
             }
-            else {
+            else
+            {
                 break;            //出现极亮度>T 的情况连续，为鱼眼边界
             }
 
         }
-        if (YD > T) {
+        if (YD > T)
+        {
             up = i;
         }
     }
@@ -69,26 +74,31 @@ void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
         for (int j = 0; j < colNumber; j++)        //扫描第 i 行，找到最大值和最小值
         {
             uchar Y = data[j];
-            if (Y > max) {
+            if (Y > max)
+            {
                 max = Y;
             }
-            if (Y < min) {
+            if (Y < min)
+            {
                 min = Y;
             }
         }
         int YD = max - min;
-        row_max_D.push_back(YD);
-        if (down != (rowNumber - 1) && YD > T) {
+        //row_max_D.push_back(YD);
+        if (down != (rowNumber - 1) && YD > T)
+        {
             if ((down - i) != 1)    //出现极亮度>T 的情况不连续，为躁点
             {
                 down = i;            //更新 up 为新值
             }
-            else {
+            else
+            {
                 break;            //出现极亮度>T 的情况连续，为鱼眼边界
             }
 
         }
-        if (YD > T) {
+        if (YD > T)
+        {
             down = i;
         }
     }
@@ -101,26 +111,31 @@ void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
         {
             uchar *data = midImage.ptr<uchar>(i);    //获取第 i 行首地址
             uchar Y = data[j];                        //获取第 j 列 i 行
-            if (Y > max) {
+            if (Y > max)
+            {
                 max = Y;
             }
-            if (Y < min) {
+            if (Y < min)
+            {
                 min = Y;
             }
         }
         int YD = max - min;
-        row_max_D.push_back(YD);
-        if (left != 0 && YD > T) {
+        //row_max_D.push_back(YD);
+        if (left != 0 && YD > T)
+        {
             if ((j - left) != 1)    //出现极亮度>T 的情况不连续，为躁点
             {
                 left = j;            //更新 up 为新值
             }
-            else {
+            else
+            {
                 break;            //出现极亮度>T 的情况连续，为鱼眼边界
             }
 
         }
-        if (YD > T) {
+        if (YD > T)
+        {
             left = j;
         }
     }
@@ -133,26 +148,31 @@ void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
         {
             uchar *data = midImage.ptr<uchar>(i);    //获取第 i 行首地址
             uchar Y = data[j];                        //获取第 j 列 i 行
-            if (Y > max) {
+            if (Y > max)
+            {
                 max = Y;
             }
-            if (Y < min) {
+            if (Y < min)
+            {
                 min = Y;
             }
         }
         int YD = max - min;
-        row_max_D.push_back(YD);
-        if (right != 0 && YD > T) {
+        //row_max_D.push_back(YD);
+        if (right != 0 && YD > T)
+        {
             if ((right - j) != 1)    //出现极亮度>T 的情况不连续，为躁点
             {
                 right = j;            //更新 up 为新值
             }
-            else {
+            else
+            {
                 break;            //出现极亮度>T 的情况连续，为鱼眼边界
             }
 
         }
-        if (YD > T) {
+        if (YD > T)
+        {
             right = j;
         }
     }
@@ -195,16 +215,19 @@ void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num) {
 /****************************************************************************************************************/
 /*统计 yuv420p 图像数据 Y 通道图像亮度差*/
 void YUV_match_avg_yuv420p(Mat src1, Mat src2,
-                           double *alpha1Y, double *alpha2Y) {
+                           double *alpha1Y, double *alpha2Y)
+{
     size_t rowNumber = src1.rows;
     size_t colNumber = src1.cols * src1.channels();
 
     unsigned int Y_sum_1 = 0, Y_sum_2 = 0;
     unsigned int Pix_num = 0;
-    for (size_t i = 0; i < rowNumber; i++) {
+    for (size_t i = 0; i < rowNumber; i++)
+    {
         uchar *data1 = src1.ptr<uchar>(i);
         uchar *data2 = src2.ptr<uchar>(i);
-        for (size_t j = 0; j < colNumber; j++) {
+        for (size_t j = 0; j < colNumber; j++)
+        {
             Y_sum_1 += data1[j];
             Y_sum_2 += data2[j];
             Pix_num++;
@@ -220,11 +243,11 @@ void YUV_match_avg_yuv420p(Mat src1, Mat src2,
 
 /* SRC0 生成完整映射情况 map_roi*************************************************************************************/
 void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_size,
-                                                     Point2f centerf_0, float radiusf_0,
-                                                     Mat RotateMat, Vec3d TMatrix, double dbK,
-                                                     Mat *mapx_ud, Mat *mapy_ud,
-                                                     Mat *mapx_ud_2, Mat *mapy_ud_2,
-                                                     float zoom) {
+        Point2f centerf_0, float radiusf_0,
+        Mat RotateMat, Vec3d TMatrix, double dbK,
+        Mat *mapx_ud, Mat *mapy_ud,
+        Mat *mapx_ud_2, Mat *mapy_ud_2)//,float zoom
+{
     int width, hight;
     int cols, rows;        //循环变量
 
@@ -246,26 +269,27 @@ void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_si
 
     for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
     {
-        float ty = (float) rows / (float) hight;    //归一化 Y
+        float ty = ((float) rows / (float) hight);    //归一化 Y
         for (cols = 0; cols < width; cols++)    //列循环1920 x
         {
-            float tx = (float) cols / (float) width;        //归一化 X
+            float tx = 1.0 - (float) cols / (float) width;        //归一化 X
             double x = ty * cos(P2PI * tx);
             double y = ty * sin(P2PI * tx);
             double x2y2 = (x * x + y * y);
             double z = 0;
-            if (x2y2 <= 1) {
+            if (x2y2 <= 1)
+            {
                 z = sqrt(1 - x2y2);
             }
             double x1 = ((dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) +
-                          TMatrix[0]) * radiusf_0 + centerf_0.x) * zoom;        //只适应了原图
+                          TMatrix[0]) * radiusf_0 + centerf_0.x);        // * zoom只适应了原图
             double y1 = ((dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) +
-                          TMatrix[1]) * radiusf_0 + centerf_0.y) * zoom;
+                          TMatrix[1]) * radiusf_0 + centerf_0.y);		// * zoom;
             //double z1 = (dbK*(pRotateMat[6]*x + pRotateMat[7]*y + pRotateMat[8]*z)+TMatrix[2]);
             mapx.at<float>(rows - start_hight, cols) = (x1 > (double) src_w) ? (float) src_w
-                                                                             : (float) (x1);
+                    : (float) (x1);
             mapy.at<float>(rows - start_hight, cols) = (y1 > (double) src_h) ? (float) src_h
-                                                                             : (float) (y1);
+                    : (float) (y1);
         }
     }
     Mat mapx_2(mapx.rows / 2, mapx.cols / 2, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
@@ -278,8 +302,6 @@ void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_si
             mapy_2.at<float>(rows, cols) = mapy.at<float>(rows * 2, cols * 2) / 2;
         }
     }
-//    resize(mapx,mapx_2,Size(mapx.cols/2,mapx.rows/2),INTER_LINEAR );
-//    resize(mapy,mapy_2,Size(mapy.cols/2,mapy.rows/2),INTER_LINEAR );
     *mapx_ud = mapx.clone();
     *mapy_ud = mapy.clone();
     *mapx_ud_2 = mapx_2.clone();
@@ -289,9 +311,10 @@ void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_si
 
 /* SRC1 生成完整映射情况 map_roi*************************************************************************************/
 void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_size,
-                                                     Point2f centerf_1, float radiusf_1,
-                                                     Mat *mapx_ud, Mat *mapy_ud,
-                                                     Mat *mapx_ud_2, Mat *mapy_ud_2, float zoom) {
+        Point2f centerf_1, float radiusf_1,
+        Mat *mapx_ud, Mat *mapy_ud,
+        Mat *mapx_ud_2, Mat *mapy_ud_2)//, float zoom)
+{
     int width, hight;
     int cols, rows;        //循环变量
 
@@ -299,10 +322,10 @@ void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_si
     int src_w = src_size.width;
     int src_h = src_size.height;
     //经纬图投影
-    float kx = (radiusf_1 * zoom) / ((float) src_w);
-    float dx = (centerf_1.x * zoom) / (float) src_w;
-    float ky = (radiusf_1 * zoom) / ((float) src_h);
-    float dy = (centerf_1.y * zoom) / (float) src_h;
+    float kx = (radiusf_1) / ((float) src_w);	// * zoom
+    float dx = (centerf_1.x) / (float) src_w;	// * zoom
+    float ky = (radiusf_1) / ((float) src_h);	// * zoom
+    float dy = (centerf_1.y) / (float) src_h;	// * zoom
 
     //半球投影大小
     width = dest_size.width;
@@ -319,7 +342,7 @@ void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_si
         float ty = (1.0 - ((float) rows / (float) hight));    //归一化 Y
         for (cols = 0; cols < width; cols++)    //列循环1920 x
         {
-            float tx = (float) cols / (float) width;        //归一化 X
+            float tx =1.0 -  (float) cols / (float) width;        //归一化 X
 
             double x = ty * cos(P2PI * tx) * kx + dx;
             double y = ty * sin(P2PI * tx) * ky + dy;
@@ -338,8 +361,6 @@ void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_si
             mapy_2.at<float>(rows, cols) = mapy.at<float>(rows * 2, cols * 2) / 2;
         }
     }
-//    resize(mapx,mapx_2,Size(mapx.cols/2,mapx.rows/2),INTER_LINEAR );
-//    resize(mapy,mapy_2,Size(mapy.cols/2,mapy.rows/2),INTER_LINEAR );
     *mapx_ud = mapx.clone();
     *mapy_ud = mapy.clone();
     *mapx_ud_2 = mapx_2.clone();
@@ -347,612 +368,10 @@ void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_si
 }
 /****************************************************************************************************************/
 
-/* SRC0 生成完整映射情况 map_roi*************************************************************************************/
-void Generate_Equirectangular_src_0_map_roi(Size src_size, Size dest_size,
-                                            Point2f centerf_0, float radiusf_0,
-                                            Mat RotateMat, Vec3d TMatrix, double dbK,
-                                            Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-    int start_hight = cvRound((0.25 + 0.75 * ANGLE) * (float) hight);
-    int roi_hight = cvRound((1.0 - ANGLE) * (float) hight * 0.5);        //roi 区域的高度
-    int stop_hight = start_hight + roi_hight;//cvRound((0.75 + 0.25 * ANGLE) * (float )hight);
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-
-    double *pRotateMat = RotateMat.ptr<double>(0);
-
-    for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
-    {
-        float ty = (float) rows / (float) hight;    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-            double x = ty * cos(P2PI * tx);
-            double y = ty * sin(P2PI * tx);
-            double x2y2 = (x * x + y * y);
-            double z = 0;
-            if (x2y2 <= 1) {
-                z = sqrt(1 - x2y2);
-            }
-            double x1 = (dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) +
-                         TMatrix[0]) * radiusf_0 + centerf_0.x;
-            double y1 = (dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) +
-                         TMatrix[1]) * radiusf_0 + centerf_0.y;
-            //double z1 = (dbK*(pRotateMat[6]*x + pRotateMat[7]*y + pRotateMat[8]*z)+TMatrix[2]);
-            mapx.at<float>(rows - start_hight, cols) = (x1 > (double) src_w) ? (float) src_w
-                                                                             : (float) (x1);
-            mapy.at<float>(rows - start_hight, cols) = (y1 > (double) src_h) ? (float) src_h
-                                                                             : (float) (y1);
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC1 生成完整映射情况 map_roi*************************************************************************************/
-void Generate_Equirectangular_src_1_map_roi(Size src_size, Size dest_size,
-                                            Point2f centerf_1, float radiusf_1,
-                                            Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-    //经纬图投影
-    float kx = (radiusf_1) / ((float) src_w);
-    float dx = (centerf_1.x) / (float) src_w;
-    float ky = (radiusf_1) / ((float) src_h);
-    float dy = (centerf_1.y) / (float) src_h;
-
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-    int start_hight = cvRound((1 - ANGLE) * (float) hight * 0.25);
-    int roi_hight = cvRound((1.0 - ANGLE) * (float) hight * 0.5);        //roi 区域的高度
-    int stop_hight = start_hight + roi_hight;//cvRound((1 - ANGLE) * (float )hight * 0.75);
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-    vector<Point3d> P2;
-
-    for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
-    {
-        float ty = (1.0 - ((float) rows / (float) hight));    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-
-            double x = ty * cos(P2PI * tx) * kx + dx;
-            double y = ty * sin(P2PI * tx) * ky + dy;
-
-            mapx.at<float>(rows - start_hight, cols) = (float) (1.0 - x) * (float) src_w;
-            mapy.at<float>(rows - start_hight, cols) = (float) (y) * (float) src_h;
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC0 生成完整映射情况 map****************************************************************************************/
-void Generate_Equirectangular_src_0_map(Size src_size, Size dest_size,
-                                        Point2f centerf_0, float radiusf_0,
-                                        Mat RotateMat, Vec3d TMatrix, double dbK,
-                                        Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-
-    int stop_hight = cvRound((0.25 + 0.75 * ANGLE) * (float) hight) - 1;
-    int roi_hight = cvRound((0.25 + 0.75 * ANGLE) * (float) hight) - 1;        //roi 区域的高度
-
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-    vector<Point3d> P2;
-    double *pRotateMat = RotateMat.ptr<double>(0);
-
-    for (rows = 0; rows < stop_hight; rows++)    //行循环1080 y
-    {
-        float ty = (float) rows / (float) hight;    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-            double x = ty * cos(P2PI * tx);
-            double y = ty * sin(P2PI * tx);
-            double x2y2 = (x * x + y * y);
-            double z = 0;
-            if (x2y2 <= 1) {
-                z = sqrt(1 - x2y2);
-            }
-            P2.push_back(Point3f(x, y, z));
-            double x1 = (dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) +
-                         TMatrix[0]) * radiusf_0 + centerf_0.x;
-            double y1 = (dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) +
-                         TMatrix[1]) * radiusf_0 + centerf_0.y;
-            //double z1 = (dbK*(pRotateMat[6]*x + pRotateMat[7]*y + pRotateMat[8]*z)+TMatrix[2]);
-            mapx.at<float>(rows, cols) = (x1 > (double) src_w) ? (float) src_w : (float) (x1);
-            mapy.at<float>(rows, cols) = (y1 > (double) src_h) ? (float) src_h : (float) (y1);
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC1 生成完整映射情况 map****************************************************************************************/
-void Generate_Equirectangular_src_1_map(Size src_size, Size dest_size,
-                                        Point2f centerf_1, float radiusf_1,
-                                        Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-    //经纬图投影
-    float kx = (radiusf_1) / ((float) src_w);
-    float dx = (centerf_1.x) / (float) src_w;
-    float ky = (radiusf_1) / ((float) src_h);
-    float dy = (centerf_1.y) / (float) src_h;
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-
-    int start_hight = cvRound((1.0 - ANGLE) * (float) hight * 0.75) + 1;        //+1 修补浮点产生的误差
-    int roi_hight = cvRound((0.25 + 0.75 * ANGLE) * (float) hight) - 1;        //roi 区域的高度
-
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-    vector<Point3d> P2;
-
-
-    for (rows = start_hight; rows < hight; rows++)    //行循环1080 y
-    {
-        float ty = (1.0 - ((float) rows / (float) hight));    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-
-            double x = ty * cos(P2PI * tx) * kx + dx;
-            double y = ty * sin(P2PI * tx) * ky + dy;
-
-            mapx.at<float>(rows - start_hight, cols) = (float) (1.0 - x) * (float) src_w;
-            mapy.at<float>(rows - start_hight, cols) = (float) (y) * (float) src_h;
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC0 生成完整映射情况 map_roi*************************************************************************************/
-void Generate_Equirectangular_src_0_map_roi_2(Size src_size, Size dest_size,
-                                              Point2f centerf_0, float radiusf_0,
-                                              Mat RotateMat, Vec3d TMatrix, double dbK,
-                                              Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-    int start_hight = cvRound(ANGLE * (float) hight);
-    int roi_hight = hight - start_hight; //cvRound((1.0 - ANGLE) * (float )hight);		//roi 区域的高度
-    int stop_hight = hight;//start_hight + roi_hight;//cvRound((0.75 + 0.25 * ANGLE) * (float )hight);
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-
-    double *pRotateMat = RotateMat.ptr<double>(0);
-
-    for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
-    {
-        float ty = (float) rows / (float) hight;    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-            double x = ty * cos(P2PI * tx);
-            double y = ty * sin(P2PI * tx);
-            double x2y2 = (x * x + y * y);
-            double z = 0;
-            if (x2y2 <= 1) {
-                z = sqrt(1 - x2y2);
-            }
-            double x1 = (dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) +
-                         TMatrix[0]) * radiusf_0 + centerf_0.x;
-            double y1 = (dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) +
-                         TMatrix[1]) * radiusf_0 + centerf_0.y;
-            //double z1 = (dbK*(pRotateMat[6]*x + pRotateMat[7]*y + pRotateMat[8]*z)+TMatrix[2]);
-            mapx.at<float>(rows - start_hight, cols) = (x1 > (double) src_w) ? (float) src_w
-                                                                             : (float) (x1);
-            mapy.at<float>(rows - start_hight, cols) = (y1 > (double) src_h) ? (float) src_h
-                                                                             : (float) (y1);
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC1 生成完整映射情况 map_roi*************************************************************************************/
-void Generate_Equirectangular_src_1_map_roi_2(Size src_size, Size dest_size,
-                                              Point2f centerf_1, float radiusf_1,
-                                              Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-    //经纬图投影
-    float kx = (radiusf_1) / ((float) src_w);
-    float dx = (centerf_1.x) / (float) src_w;
-    float ky = (radiusf_1) / ((float) src_h);
-    float dy = (centerf_1.y) / (float) src_h;
-
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-
-    int start_hight = 0;//cvRound((1 - ANGLE) * (float )hight * 0.25);
-    int stop_hight = hight - cvRound(ANGLE *
-                                     (float) hight);//start_hight + roi_hight;//cvRound((1 - ANGLE) * (float )hight * 0.75);
-    int roi_hight = stop_hight;//cvRound((1.0 - ANGLE) * (float )hight * 0.5);		//roi 区域的高度
-
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-    vector<Point3d> P2;
-
-    for (rows = start_hight; rows < stop_hight; rows++)    //行循环1080 y
-    {
-        float ty = (1.0 - ((float) rows / (float) hight));    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-
-            double x = ty * cos(P2PI * tx) * kx + dx;
-            double y = ty * sin(P2PI * tx) * ky + dy;
-
-            mapx.at<float>(rows - start_hight, cols) = (float) (1.0 - x) * (float) src_w;
-            mapy.at<float>(rows - start_hight, cols) = (float) (y) * (float) src_h;
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC0 生成完整映射情况 map****************************************************************************************/
-void Generate_Equirectangular_src_0_map_2(Size src_size, Size dest_size,
-                                          Point2f centerf_0, float radiusf_0,
-                                          Mat RotateMat, Vec3d TMatrix, double dbK,
-                                          Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-
-    int stop_hight = cvRound(
-            ANGLE * (float) hight);//cvRound((0.25 + 0.75 * ANGLE) * (float )hight)-1;
-    int roi_hight = stop_hight;//cvRound((0.25 + 0.75 * ANGLE) * (float )hight)-1;		//roi 区域的高度
-
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-    vector<Point3d> P2;
-    double *pRotateMat = RotateMat.ptr<double>(0);
-
-    for (rows = 0; rows < stop_hight; rows++)    //行循环1080 y
-    {
-        float ty = (float) rows / (float) hight;    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-            double x = ty * cos(P2PI * tx);
-            double y = ty * sin(P2PI * tx);
-            double x2y2 = (x * x + y * y);
-            double z = 0;
-            if (x2y2 <= 1) {
-                z = sqrt(1 - x2y2);
-            }
-            P2.push_back(Point3f(x, y, z));
-            double x1 = (dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) +
-                         TMatrix[0]) * radiusf_0 + centerf_0.x;
-            double y1 = (dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) +
-                         TMatrix[1]) * radiusf_0 + centerf_0.y;
-            //double z1 = (dbK*(pRotateMat[6]*x + pRotateMat[7]*y + pRotateMat[8]*z)+TMatrix[2]);
-            mapx.at<float>(rows, cols) = (x1 > (double) src_w) ? (float) src_w : (float) (x1);
-            mapy.at<float>(rows, cols) = (y1 > (double) src_h) ? (float) src_h : (float) (y1);
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC1 生成完整映射情况 map****************************************************************************************/
-void Generate_Equirectangular_src_1_map_2(Size src_size, Size dest_size,
-                                          Point2f centerf_1, float radiusf_1,
-                                          Mat *mapx_ud, Mat *mapy_ud) {
-    int width, hight;
-    int cols, rows;        //循环变量
-
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-    //经纬图投影
-    float kx = (radiusf_1) / ((float) src_w);
-    float dx = (centerf_1.x) / (float) src_w;
-    float ky = (radiusf_1) / ((float) src_h);
-    float dy = (centerf_1.y) / (float) src_h;
-    //半球投影大小
-    width = dest_size.width;
-    hight = dest_size.height;
-
-
-    int roi_hight = cvRound(ANGLE *
-                            (float) hight);//cvRound((0.25 + 0.75 * ANGLE) * (float )hight) - 1;		//roi 区域的高度
-    int start_hight =
-            hight - roi_hight;//cvRound((1.0 - ANGLE) * (float )hight * 0.75) + 1;		//+1 修补浮点产生的误差
-
-    //生成的映射表
-    Mat mapx(roi_hight, width, CV_32FC1);    //转成 remap 函数所需格式，并判断范围是否在规定图像范围内
-    Mat mapy(roi_hight, width, CV_32FC1);
-    vector<Point3d> P2;
-
-
-    for (rows = start_hight; rows < hight; rows++)    //行循环1080 y
-    {
-        float ty = (1.0 - ((float) rows / (float) hight));    //归一化 Y
-        for (cols = 0; cols < width; cols++)    //列循环1920 x
-        {
-            float tx = (float) cols / (float) width;        //归一化 X
-
-            double x = ty * cos(P2PI * tx) * kx + dx;
-            double y = ty * sin(P2PI * tx) * ky + dy;
-
-            mapx.at<float>(rows - start_hight, cols) = (float) (1.0 - x) * (float) src_w;
-            mapy.at<float>(rows - start_hight, cols) = (float) (y) * (float) src_h;
-        }
-    }
-    *mapx_ud = mapx.clone();
-    *mapy_ud = mapy.clone();
-}
-/****************************************************************************************************************/
-
-/* SRC0 生成完整映射情况 坐标变换************************************************************************************/
-void src_0_Equirectangular_coordinate_transformation(Point2f Texture_Coordinates,
-                                                     Point2f *Image_Coordinates, Size src_size,
-                                                     Point2f centerf_0, float radiusf_0,
-                                                     Mat RotateMat, Vec3d TMatrix, double dbK) {
-    double tx = (double) Texture_Coordinates.x;
-    double ty = (double) Texture_Coordinates.y;
-
-    if (tx > 1.0) {
-        tx = 1.0;
-    }
-    else if (tx < 0) {
-        tx = 0;
-    }
-    if (ty > 1.0) {
-        ty = 1.0;
-    }
-    else if (tx < 0) {
-        ty = 0;
-    }
-    double *pRotateMat = RotateMat.ptr<double>(0);
-    double x = ty * cos(P2PI * tx);
-    double y = ty * sin(P2PI * tx);
-    double x2y2 = (x * x + y * y);
-    double z = 0;
-    if (x2y2 <= 1) {
-        z = sqrt(1 - x2y2);
-    }
-
-    double x1 = (dbK * (pRotateMat[0] * x + pRotateMat[1] * y + pRotateMat[2] * z) + TMatrix[0]) *
-                radiusf_0 + centerf_0.x;
-    double y1 = (dbK * (pRotateMat[3] * x + pRotateMat[4] * y + pRotateMat[5] * z) + TMatrix[1]) *
-                radiusf_0 + centerf_0.y;
-    //double z1 = (dbK * (pRotateMat[6] * x + pRotateMat[7] * y + pRotateMat[8] * z) + TMatrix[2]);
-
-    Image_Coordinates->x = (float) (x1 / (double) src_size.width);
-    Image_Coordinates->y = (float) (y1 / (double) src_size.height);
-}
-/****************************************************************************************************************/
-
-/* SRC1 生成完整映射情况 坐标变换************************************************************************************/
-void src_1_Equirectangular_coordinate_transformation(Point2f Texture_Coordinates,
-                                                     Point2f *Image_Coordinates, Size src_size,
-                                                     Point2f centerf_1, float radiusf_1) {
-    double tx = (double) Texture_Coordinates.x;
-    double ty = 1.0 - (double) Texture_Coordinates.y;
-
-    if (tx > 1.0) {
-        tx = 1.0;
-    }
-    else if (tx < 0) {
-        tx = 0;
-    }
-    if (ty > 1.0) {
-        ty = 1.0;
-    }
-    else if (tx < 0) {
-        ty = 0;
-    }
-    //原图大小
-    int src_w = src_size.width;
-    int src_h = src_size.height;
-    //经纬图投影
-    float kx = (radiusf_1) / ((float) src_w);
-    float dx = (centerf_1.x) / (float) src_w;
-    float ky = (radiusf_1) / ((float) src_h);
-    float dy = (centerf_1.y) / (float) src_h;
-    double x = ty * cos(P2PI * tx) * kx + dx;
-    double y = ty * sin(P2PI * tx) * ky + dy;
-
-    Image_Coordinates->x = (float) (1.0 - x);
-    Image_Coordinates->y = (float) (y);
-}
-/****************************************************************************************************************/
-
-/*获取亮度 K 值，转换为平均值***************************************************************************************/
-void YUV_match_avg(Mat src1, Mat src2,
-                   double *alpha1Y, double *alpha1U, double *alpha1V,
-                   double *alpha2Y, double *alpha2U, double *alpha2V) {
-    //转换成 HSV 空间
-    Mat image1_YUV;
-    Mat image2_YUV;
-    cvtColor(src1, image1_YUV, COLOR_BGR2YUV);    //COLOR_BGR2YUV COLOR_BGR2HSV
-    cvtColor(src2, image2_YUV, COLOR_BGR2YUV);
-
-    size_t rowNumber = image1_YUV.rows;
-    size_t colNumber = image1_YUV.cols * image1_YUV.channels();
-
-    unsigned int Y_sum_1 = 0, Y_sum_2 = 0;
-    unsigned int U_sum_1 = 0, U_sum_2 = 0;
-    unsigned int V_sum_1 = 0, V_sum_2 = 0;
-    unsigned int Pix_num = 0;
-    for (size_t i = 0; i < rowNumber; i++) {
-        uchar *data1 = image1_YUV.ptr<uchar>(i);
-        uchar *data2 = image2_YUV.ptr<uchar>(i);
-        for (size_t j = 0; j < colNumber; j += 3) {
-            Y_sum_1 += data1[j];
-            Y_sum_2 += data2[j];
-            U_sum_1 += data1[j + 1];
-            U_sum_2 += data2[j + 1];
-            V_sum_1 += data1[j + 2];
-            V_sum_2 += data2[j + 2];
-            Pix_num++;
-        }
-    }
-
-    double Yaveg = ((double) Y_sum_1 + (double) Y_sum_2) / 2.0;
-    double Uaveg = ((double) U_sum_1 + (double) U_sum_2) / 2.0;
-    double Vaveg = ((double) V_sum_1 + (double) V_sum_2) / 2.0;
-
-    double alphaY1 = Yaveg / (double) Y_sum_1;
-    double alphaU1 = Uaveg / (double) U_sum_1;
-    double alphaV1 = Vaveg / (double) V_sum_1;
-
-    double alphaY2 = Yaveg / (double) Y_sum_2;
-    double alphaU2 = Uaveg / (double) U_sum_2;
-    double alphaV2 = Vaveg / (double) V_sum_2;
-
-    *alpha1Y = alphaY1;
-    *alpha1U = alphaU1;
-    *alpha1V = alphaV1;
-
-    *alpha2Y = alphaY2;
-    *alpha2U = alphaU2;
-    *alpha2V = alphaV2;
-}
-/****************************************************************************************************************/
-
-/*获取亮度 K 值****************************************************************************************************/
-void YUV_match(Mat src1, Mat src2, int *Y21Y12,
-               double *alpha21Y)//, double *alpha21U, double *alpha21V
+/*最佳缝合线**暂时不能用************************************************************************************************/
+bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold, Mat *m)
 {
-    //转换成 HSV 空间
-    Mat image1_YUV;
-    Mat image2_YUV;
-    cvtColor(src1, image1_YUV, COLOR_BGR2YUV);    //COLOR_BGR2YUV COLOR_BGR2HSV
-    cvtColor(src2, image2_YUV, COLOR_BGR2YUV);
-
-    size_t rowNumber = image1_YUV.rows;
-    size_t colNumber = image1_YUV.cols * image1_YUV.channels();
-
-    unsigned int Y_sum_1 = 0, Y_sum_2 = 0;
-    for (size_t i = 0; i < rowNumber; i++) {
-        uchar *data1 = image1_YUV.ptr<uchar>(i);
-        uchar *data2 = image2_YUV.ptr<uchar>(i);
-        for (size_t j = 0; j < colNumber; j += 3) {
-            Y_sum_1 += data1[j];
-            Y_sum_2 += data2[j];
-        }
-    }
-    double alphaY = 0;
-    if (Y_sum_1 > Y_sum_2) {
-        alphaY = (double) Y_sum_1 / (double) Y_sum_2;
-        *Y21Y12 = 1;
-    } else {
-        alphaY = (double) Y_sum_2 / (double) Y_sum_1;
-        *Y21Y12 = 2;
-    }
-    *alpha21Y = alphaY;
-
-}
-/****************************************************************************************************************/
-
-/*设置 YUV 颜色亮度均衡*********************************************************************************************/
-void YUV_change(Mat src, Mat *dest, double alpha21Y, double alpha21U, double alpha21V) {
-    //转换成 HSV 空间
-    Mat image1_YUV;
-    cvtColor(src, image1_YUV, COLOR_BGR2YUV);
-
-    size_t rowNumber = image1_YUV.rows;
-    size_t colNumber = image1_YUV.cols * image1_YUV.channels();
-
-    Mat dst_YUV;
-    dst_YUV = image1_YUV.clone();
-
-    for (size_t i = 0; i < rowNumber; i++) {
-        uchar *data1 = dst_YUV.ptr<uchar>(i);
-        uchar *data2 = image1_YUV.ptr<uchar>(i);
-        for (size_t j = 0; j < colNumber; j += 3) {
-            int Y = cvRound((double) data2[j] * alpha21Y);
-            data1[j] = (Y > 255) ? 255 : Y;
-            int U = cvRound((double) data2[j + 1] * alpha21U);
-            data1[j + 1] = (U > 255) ? 255 : U;
-            int V = cvRound((double) data2[j + 2] * alpha21V);
-            data1[j + 2] = (V > 255) ? 255 : V;
-        }
-    }
-    Mat dest_BGR;
-    cvtColor(dst_YUV, dest_BGR, COLOR_YUV2BGR);
-#if IWSHOW_DEBUG
-    imshow("src", src);
-    imshow("dest_BGR", dest_BGR);
-    waitKey();
-#endif
-    *dest = dest_BGR.clone();
-}
-/****************************************************************************************************************/
-
-/*最佳缝合线******************************************************************************************************/
-bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold, Mat *m) {
-/*4. 融合区最佳缝合线******************************************************************/
+    /*4. 融合区最佳缝合线******************************************************************/
     /*a.计算缝合线判决值******************************/
     Mat diff, diff_Sobel_x, diff_Sobel_y;
     Mat eq_img_0_gray, eq_img_1_gray;
@@ -1008,22 +427,28 @@ bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold,
             float elm_left = geometry.at<float>((row_loop - 1), (j));
             float elm_right = geometry.at<float>((row_loop + 1), (j));
             int offse;
-            if (elm_middle < elm_left) {
-                if (elm_middle < elm_right) {
+            if (elm_middle < elm_left)
+            {
+                if (elm_middle < elm_right)
+                {
                     offse = 0;
                     line_strength += (double) elm_middle;
                 }
-                else {
+                else
+                {
                     offse = 1;
                     line_strength += (double) elm_right;
                 }
             }
-            else {
-                if (elm_left < elm_right) {
+            else
+            {
+                if (elm_left < elm_right)
+                {
                     offse = -1;
                     line_strength += (double) elm_left;
                 }
-                else {
+                else
+                {
                     offse = 1;
                     line_strength += (double) elm_right;
                 }
@@ -1039,11 +464,13 @@ bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold,
                 finish_loop++;
                 row_loop = rowNumber / 2;    //如果查找到边缘，返回图像中心重新寻找
             }
-            if (finish_loop > Stitching_threshold) {
+            if (finish_loop > Stitching_threshold)
+            {
                 break;
             }
         }
-        if (finish_loop <= Stitching_threshold) {
+        if (finish_loop <= Stitching_threshold)
+        {
             all_line.push_back(line);    //缝合线
             all_line_strength.push_back(line_strength);    //缝合线强度
             all_finish_loop.push_back(finish_loop);
@@ -1051,23 +478,31 @@ bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold,
     }
     /*c. 在缝合线中找最小缝合线和********************************/
     int flm_min = 0;
-    if (0 != all_line.size()) {
+    if (0 != all_line.size())
+    {
         cout << "找到缝合线条数 = " << all_line.size() << endl;
-        for (size_t flm = 0; flm < all_line.size(); flm++) {
-            if (all_line_strength[flm_min] >= all_line_strength[flm]) {
+        for (size_t flm = 0; flm < all_line.size(); flm++)
+        {
+            if (all_line_strength[flm_min] >= all_line_strength[flm])
+            {
                 flm_min = flm;
             }
         }
-        if (0 != all_line.size()) {
+        if (0 != all_line.size())
+        {
             rowNumber = m->rows;
             colNumber = m->cols * m->channels();
-            for (int rows = 0; rows < rowNumber; rows++) {
+            for (int rows = 0; rows < rowNumber; rows++)
+            {
                 float *data = m->ptr<float>(rows);
-                for (int cols = 0; cols < colNumber; cols++) {
-                    if (rows > all_line[flm_min][cols].y) {
+                for (int cols = 0; cols < colNumber; cols++)
+                {
+                    if (rows > all_line[flm_min][cols].y)
+                    {
                         data[cols] = 1;
                     }
-                    else {
+                    else
+                    {
                         data[cols] = 0;
                     }
                 }
@@ -1105,7 +540,8 @@ bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold,
 #endif
         return true;
     }
-    else {
+    else
+    {
         cout << "未找到缝合线，线性融合 " << endl;
         return false;
     }

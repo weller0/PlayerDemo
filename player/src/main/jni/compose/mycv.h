@@ -31,72 +31,12 @@ void Generate_Equirectangular_src_0_map_roi_yuv420sp(Size src_size, Size dest_si
                                                      Point2f centerf_0, float radiusf_0,
                                                      Mat RotateMat, Vec3d TMatrix, double dbK,
                                                      Mat *mapx_ud, Mat *mapy_ud,
-                                                     Mat *mapx_ud_2, Mat *mapy_ud_2,
-                                                     float zoom);
+                                                     Mat *mapx_ud_2, Mat *mapy_ud_2);//,float zoom);
 
 void Generate_Equirectangular_src_1_map_roi_yuv420sp(Size src_size, Size dest_size,
                                                      Point2f centerf_1, float radiusf_1,
                                                      Mat *mapx_ud, Mat *mapy_ud,
-                                                     Mat *mapx_ud_2, Mat *mapy_ud_2, float zoom);
-
-/* SRC0 生成完整映射情况 坐标变换*************************************************************************************/
-void src_0_Equirectangular_coordinate_transformation(Point2f Texture_Coordinates,
-                                                     Point2f *Image_Coordinates, Size src_size,
-                                                     Point2f centerf_0, float radiusf_0,
-                                                     Mat RotateMat, Vec3d TMatrix, double dbK);
-/**************************************************************************************************************/
-/* SRC1 生成完整映射情况 坐标变换*************************************************************************************/
-void src_1_Equirectangular_coordinate_transformation(Point2f Texture_Coordinates,
-                                                     Point2f *Image_Coordinates, Size src_size,
-                                                     Point2f centerf_1, float radiusf_1);
-/**************************************************************************************************************/
-
-/* SRC0 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_0_map(Size src_size, Size dest_size,
-                                        Point2f centerf_0, float radiusf_0,
-                                        Mat RotateMat, Vec3d TMatrix, double dbK,
-                                        Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-/* SRC1 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_1_map(Size src_size, Size dest_size,
-                                        Point2f centerf_1, float radiusf_1,
-                                        Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-/* SRC0 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_0_map_roi(Size src_size, Size dest_size,
-                                            Point2f centerf_0, float radiusf_0,
-                                            Mat RotateMat, Vec3d TMatrix, double dbK,
-                                            Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-/* SRC1 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_1_map_roi(Size src_size, Size dest_size,
-                                            Point2f centerf_1, float radiusf_1,
-                                            Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-
-/* SRC0 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_0_map_2(Size src_size, Size dest_size,
-                                          Point2f centerf_0, float radiusf_0,
-                                          Mat RotateMat, Vec3d TMatrix, double dbK,
-                                          Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-/* SRC1 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_1_map_2(Size src_size, Size dest_size,
-                                          Point2f centerf_1, float radiusf_1,
-                                          Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-/* SRC0 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_0_map_roi_2(Size src_size, Size dest_size,
-                                              Point2f centerf_0, float radiusf_0,
-                                              Mat RotateMat, Vec3d TMatrix, double dbK,
-                                              Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-/* SRC1 生成完整映射情况 map*************************************************************************************/
-void Generate_Equirectangular_src_1_map_roi_2(Size src_size, Size dest_size,
-                                              Point2f centerf_1, float radiusf_1,
-                                              Mat *mapx_ud, Mat *mapy_ud);
-/**************************************************************************************************************/
-
+                                                     Mat *mapx_ud_2, Mat *mapy_ud_2);//, float zoom);
 /*最佳缝合线****************************************************************************************************/
 bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold, Mat *m);
 /**************************************************************************************************************/
@@ -104,18 +44,4 @@ bool Optimal_Stitching_Line(Mat eq_img_0, Mat eq_img_1, int Stitching_threshold,
 /*寻找圆形区域中心半径*******************************************************************************************/
 void Circumscribe(Mat src, int T, Point2f *centerf, float *radiusf, int num);
 /**************************************************************************************************************/
-
-/*亮度匹配到平均值***********************************************************************************************/
-void YUV_match_avg(Mat src1, Mat src2, double *alpha1Y, double *alpha1U, double *alpha1V,
-                   double *alpha2Y, double *alpha2U, double *alpha2V);
-/**************************************************************************************************************/
-
-/*获取亮度 K 值****************************************************************************************************/
-void YUV_match(Mat src1, Mat src2, int *Y21Y12, double *alpha21Y);
-/**************************************************************************************************************/
-
-/*亮度设置到平均值***********************************************************************************************/
-void YUV_change(Mat src, Mat *dest, double alpha21Y, double alpha21U, double alpha21V);
-/**************************************************************************************************************/
-
 #endif /* MYCV_H_ */
