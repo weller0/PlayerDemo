@@ -26,7 +26,8 @@ void Picture::loadShader() {
     LOGI("[Picture:loadShader]pBeanProcess->mProgramHandle=%d", pBeanProcess->mProgramHandle);
 }
 
-GLboolean Picture::prepareDraw(Bitmap *bmp) {
+GLboolean Picture::prepareDraw(Bitmap *bmp, GLboolean updateFrameData) {
+    if(!updateFrameData) return GL_TRUE;
     if (bmp != NULL) {
         if (bFirstFrame) {
             bFirstFrame = GL_FALSE;

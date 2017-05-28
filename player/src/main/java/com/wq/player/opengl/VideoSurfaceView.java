@@ -30,6 +30,7 @@ public class VideoSurfaceView extends GLSurfaceView {
     private VideoRenderer mRenderer;
     private SurfaceTexture mSurfaceTexture;
     private int mTextureId = -1;
+    private volatile boolean bUpdateFrameData = false;
 
     public VideoSurfaceView(Context context, boolean isUseBitmap, boolean isLeft, int sm, int cs, int rr) {
         super(context);
@@ -92,8 +93,13 @@ public class VideoSurfaceView extends GLSurfaceView {
     public void updateFrame(Bitmap bmp){
         synchronized (syncObj) {
             mFrameBmp = bmp;
-            requestRender();
+            bUpdateFrameData = true;
+            //requestRender();
         }
+    }
+
+    public void updateFrameData(){
+        bUpdateFrameData = true;
     }
 
     public void resetTransform(){
@@ -136,7 +142,8 @@ public class VideoSurfaceView extends GLSurfaceView {
                 }
             }
             synchronized (syncObj) {
-                mPicLeft.onDrawFrame(mFrameBmp);
+                mPicLeft.onDrawFrame(mFrameBmp, bUpdateFrameData);
+                if(bUpdateFrameData) bUpdateFrameData = false;
 //                if(mFrameBmp != null && mFrameBmp.isRecycled()){
 //                    mFrameBmp.recycle();
 //                    mFrameBmp = null;
@@ -146,7 +153,7 @@ public class VideoSurfaceView extends GLSurfaceView {
             long currTime = System.currentTimeMillis();
             if (currTime - lastTime >= 5000) {
                 lastTime = currTime;
-                L.d(TAG, "fps=" + (fpsCount * 0.2f));
+                L.d(TAG, "t_fps=" + (fpsCount * 0.2f));
                 fpsCount = 0;
             }
         }

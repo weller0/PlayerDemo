@@ -45,6 +45,7 @@ const char gYuvAFragmentShader[] =
         "  c.a = 1.0;                           \n"
         "  color = vec4(light, 1.0) * c;        \n"
         "}\n";
+
 //        "#version 300 es                        \n"
 //        "precision mediump float;               \n"
 //        "in vec2 TexCoord;                      \n"
@@ -60,10 +61,20 @@ public:
 
     ~PlayYuv();
 
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    pthread_t pThreadForTexture;
+    GLboolean bExitThread;
+    AVFrame *pYuvFrame;
+
+    void compose(AVFrame *frame);
+
+    GLboolean prepareTexture();
+
 protected:
     void loadShader();
 
-    GLboolean prepareDraw(Bitmap *bmp);
+    GLboolean prepareDraw(Bitmap *bmp, GLboolean updateFrameData);
 
     GLuint updateTextureAuto();
 
@@ -71,24 +82,23 @@ private:
     GLboolean bFirstFrame;
     GLboolean bFirstFrameForCompose;
     SettingsBean *mSettingsBean;
-
-    pthread_mutex_t mutex;
     void *pSO;
-    AVFrame * (*funcGetFrame)(void);
-    AVFrame *pYuvFrame;
+
+    AVFrame *(*funcGetFrame)(void);
 
     GLuint mTextureY, mTextureU, mTextureV;
     GLuint mComposeTextureY, mComposeTextureU, mComposeTextureV;
     GLint mTexHandleY, mTexHandleU, mTexHandleV;
+
     GLboolean useYUVDraw();
 
     void drawForYUV(GLBean *glBean);
 
-    void prepareComposeTexture(AVFrame * frame);
+    void prepareComposeTexture(AVFrame *frame);
 
     void initCompose(GLint w, GLint h);
 
-    void compose(AVFrame * frame);
+    static void *thread_fun(void *arg);
 
     //初始化参数
     Mat imapx_roi0, imapy_roi0;     //imag_0 经纬展开 map

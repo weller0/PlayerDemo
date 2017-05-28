@@ -59,10 +59,10 @@ void GLRenderer::onSurfaceChanged(GLuint w, GLuint h) {
     prepareDisplayFBO();
 }
 
-void GLRenderer::onDrawFrame(Bitmap *bmp) {
+void GLRenderer::onDrawFrame(Bitmap *bmp, GLboolean updateFrameData) {
     updateBuffer(pBeanProcess);
     updateBuffer(pBeanDisplay);
-    if (!prepareDraw(bmp)) return;
+    if (!prepareDraw(bmp, updateFrameData)) return;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
@@ -284,7 +284,7 @@ void GLRenderer::prepareDisplayFBO() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-GLboolean  GLRenderer::prepareDraw(Bitmap *bmp) {
+GLboolean  GLRenderer::prepareDraw(Bitmap *bmp, GLboolean updateFrameData) {
     return GL_TRUE;
 }
 

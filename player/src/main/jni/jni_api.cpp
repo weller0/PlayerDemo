@@ -38,7 +38,8 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnSurfaceChanged(JNIEnv *en
 
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
                                                                  jobject obj,
-                                                                 jobject bmp) {
+                                                                 jobject bmp,
+                                                                 jboolean updateFrameData) {
     if (bHaveLicence) {
         if (bmp != NULL) {
             AndroidBitmapInfo bitmapInfo;
@@ -59,10 +60,10 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
             }
             AndroidBitmap_unlockPixels(env, bmp);
             bitmap->bitmapInfo = bitmapInfo;
-            pGLDisplay->onDrawFrame(bitmap);
+            pGLDisplay->onDrawFrame(bitmap, updateFrameData);
             delete bitmap;
         } else {
-            pGLDisplay->onDrawFrame(NULL);
+            pGLDisplay->onDrawFrame(NULL, updateFrameData);
         }
     }
 }

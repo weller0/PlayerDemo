@@ -11,6 +11,7 @@ PlayYuv::PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean)
     mSettingsBean = settingsBean;
 
     pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
     char so32Path[256] = {0};
     sprintf(so32Path, "%s/lib/arm/libijkplayer.so", settingsBean->mAppPath);
     pSO = dlopen(so32Path, RTLD_NOW);
@@ -26,12 +27,15 @@ PlayYuv::PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean)
     if(pSO != NULL) {
         funcGetFrame = (AVFrame *(*)()) dlsym(pSO, "ijkmp_get_frame");
     }
+    bExitThread = GL_FALSE;
 }
 
 PlayYuv::~PlayYuv() {
     LOGI("[PlayYuv] -");
-
+    bExitThread = GL_TRUE;
     pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
+    pthread_detach(pThreadForTexture);
 }
 
 void PlayYuv::loadShader() {
@@ -56,7 +60,20 @@ GLuint PlayYuv::updateTextureAuto() {
     return 15;
 }
 
-GLboolean PlayYuv::prepareDraw(Bitmap *bmp) {
+void* PlayYuv::thread_fun(void *arg) {
+    PlayYuv *play = (PlayYuv *)arg;
+    while(!play->bExitThread) {
+        pthread_mutex_lock(&play->mutex);
+        pthread_cond_wait(&play->cond, &play->mutex);
+        pthread_mutex_unlock(&play->mutex);
+        if(play->pYuvFrame != NULL) {
+            play->compose(play->pYuvFrame);
+        }
+    }
+    return NULL;
+}
+
+GLboolean PlayYuv::prepareTexture() {
     pYuvFrame = funcGetFrame();
     if (pYuvFrame != NULL && pYuvFrame->width > 0) {
         prepareComposeTexture(pYuvFrame);
@@ -111,10 +128,16 @@ GLboolean PlayYuv::prepareDraw(Bitmap *bmp) {
                             GL_LUMINANCE, GL_UNSIGNED_BYTE,
                             pYuvFrame->data[2]);
         }
-        return GL_TRUE;
-    } else {
-        return GL_FALSE;
     }
+}
+
+GLboolean PlayYuv::prepareDraw(Bitmap *bmp, GLboolean updateFrameData) {
+    if(!updateFrameData) return GL_TRUE;
+    pthread_mutex_lock(&mutex);
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mutex);
+    prepareTexture();
+    return GL_TRUE;
 }
 
 void PlayYuv::drawForYUV(GLBean *glBean) {
@@ -191,6 +214,8 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
         initCompose(frame->width, frame->height);
         compose(frame);
 
+        pthread_create(&pThreadForTexture, NULL, thread_fun, this);
+
         glGenTextures(1, &mComposeTextureY);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureY);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -221,7 +246,7 @@ void PlayYuv::prepareComposeTexture(AVFrame * frame) {
                      out_v.cols, out_v.rows, 0,
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, out_v.ptr(0));
     } else {
-        compose(frame);
+//        compose(frame);
         glBindTexture(GL_TEXTURE_2D, mComposeTextureY);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                         out_y.cols, out_y.rows,

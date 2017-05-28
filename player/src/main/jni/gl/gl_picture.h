@@ -44,7 +44,7 @@ public:
 protected:
     void loadShader();
 
-    GLboolean prepareDraw(Bitmap *bmp);
+    GLboolean prepareDraw(Bitmap *bmp, GLboolean updateFrameData);
 
 private:
     GLboolean bFirstFrame;

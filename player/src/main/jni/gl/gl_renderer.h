@@ -163,7 +163,7 @@ public:
 
     GLint onSurfaceCreated();
 
-    void onDrawFrame(Bitmap *bmp);
+    void onDrawFrame(Bitmap *bmp, GLboolean updateFrameData);
 
     GLboolean onSettingsChanged(GLuint sm, GLuint rr, GLuint cs);
 
@@ -174,7 +174,7 @@ protected:
 
     virtual void loadShader();
 
-    virtual GLboolean prepareDraw(Bitmap *bmp);
+    virtual GLboolean prepareDraw(Bitmap *bmp, GLboolean updateFrameData);
 
     virtual GLuint updateTextureAuto();
 

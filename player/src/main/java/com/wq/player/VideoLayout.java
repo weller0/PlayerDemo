@@ -78,6 +78,7 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         isPictureMode = false;
         removeMsg();
         setPlayState(PlayState.UnPrepare);
+        setFps(42);
         mPlayerListener = listener;
         mPlayManager.initMedia(Uri.parse(path), getContext());
         L.d(TAG, "setVideoSource path=" + path);
@@ -207,11 +208,12 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         removeListener();
         mLeftSurfaceView.pause();
         pause();
-        removeMsg();
+        //removeMsg();
     }
 
     public void onDestroy() {
         L.d(TAG, "onDestroy");
+        mLeftSurfaceView.destroy();
         removeView(mLeftSurfaceView);
         removeView(mNoLicenceLayout);
         release();
@@ -276,13 +278,13 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         L.d(TAG, "PlayManager onPrepareFinish");
         setPlayState(PlayState.Prepared);
         play();
+        refreshFrame();
         if (mPlayerListener != null) mPlayerListener.onPrepareFinish();
     }
 
     @Override
     public void onFrameUpdate() {
-        //L.d(TAG, "onFrameUpdate");
-        mLeftSurfaceView.requestRender();
+        mLeftSurfaceView.updateFrameData();
         if (mPlayerListener != null) mPlayerListener.onFrameUpdate();
     }
 
@@ -332,7 +334,7 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     public void play() {
         if (getPlayState() == PlayState.Prepared || getPlayState() == PlayState.Pause) {
             setPlayState(PlayState.Playing);
-            removeMsg();
+            //removeMsg();
             if (isUsePlayer()) {
                 mPlayManager.play();
             }
@@ -342,8 +344,7 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     public void pause() {
         if (getPlayState() == PlayState.Playing) {
             setPlayState(PlayState.Pause);
-            removeMsg();
-            refreshFrame();
+            //removeMsg();
             if (isUsePlayer()) {
                 mPlayManager.pause();
             }
@@ -385,13 +386,13 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         NoLicence
     }
 
-    private static final int MSG_PAUSE_REFRESH_FRAME = 1;
+    private static final int MSG_REFRESH_FRAME = 1;
     Handler mRefreshHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case MSG_PAUSE_REFRESH_FRAME:
+                case MSG_REFRESH_FRAME:
                     mLeftSurfaceView.requestRender();
                     refreshFrame();
                     break;
@@ -400,10 +401,10 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     };
 
     private void refreshFrame() {
-        mRefreshHandler.sendEmptyMessageDelayed(MSG_PAUSE_REFRESH_FRAME, (long) (1000.0 / fps));
+        mRefreshHandler.sendEmptyMessageDelayed(MSG_REFRESH_FRAME, (long) (1000.0 / fps));
     }
 
     private void removeMsg() {
-        mRefreshHandler.removeMessages(MSG_PAUSE_REFRESH_FRAME);
+        mRefreshHandler.removeMessages(MSG_REFRESH_FRAME);
     }
 }
