@@ -1,14 +1,23 @@
+#include <bean/bean_base.h>
 #include "transform/touch.h"
 
-Touch::Touch(SettingsBean *settingsBean) {
+Touch::Touch(TransformBean *transformBean, SettingsBean *settingsBean) {
     mSettingsBean = settingsBean;
+    mTransformBean = transformBean;
     mStartPoint = new Point2();
+    mLastPoint = new Point2();
     mMidPoint = new Point2();
     mMode = MODE_NORMAL;
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
 }
 
 Touch::~Touch() {
+    pthread_detach(pThreadForAnim);
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
     delete mStartPoint;
+    delete mLastPoint;
     delete mMidPoint;
 }
 
@@ -22,7 +31,10 @@ GLboolean Touch::onTouch(TransformBean *bean, GLuint action, GLuint pointerCount
                 mMode = MODE_DRAG;
                 mStartPoint->x = x1;
                 mStartPoint->y = y1;
+                mLastPoint->x = x1;
+                mLastPoint->y = y1;
                 mLastTime = getCurrentTime();
+                mPressTime = mLastTime;
             }
             break;
         case ACTION_POINTER_DOWN:
@@ -40,9 +52,14 @@ GLboolean Touch::onTouch(TransformBean *bean, GLuint action, GLuint pointerCount
             break;
         case ACTION_CANCEL:
         case ACTION_UP:
-        case ACTION_POINTER_UP:
+        case ACTION_POINTER_UP: {
+            GLuint64 tt = getCurrentTime();
+            GLfloat vx = (x1 - mStartPoint->x) * 1000.0f / (tt - mPressTime);
+            GLfloat vy = (y1 - mStartPoint->y) * 1000.0f / (tt - mPressTime);
+            fling(-vx, vy);
             mMode = MODE_NORMAL;
             break;
+        }
         case ACTION_MOVE:
             if (mMode == MODE_DRAG) {
                 GLuint64 time = getCurrentTime();
@@ -53,15 +70,15 @@ GLboolean Touch::onTouch(TransformBean *bean, GLuint action, GLuint pointerCount
             }
             break;
     }
-    return true;
+    return GL_TRUE;
 }
 
 void Touch::setDrag(TransformBean *bean, GLfloat x, GLfloat y, GLuint time) {
     // 计算拖拽的距离
-    float dx = x - mStartPoint->x;
-    float dy = y - mStartPoint->y;
-    mStartPoint->x = x;
-    mStartPoint->y = y;
+    float dx = x - mLastPoint->x;
+    float dy = y - mLastPoint->y;
+    mLastPoint->x = x;
+    mLastPoint->y = y;
     dx = TO_DEGREES(dx * time / 13000.0) * sinf(TO_RADIANS(bean->fov));
     dy = TO_DEGREES(dy * time / 13000.0) * sinf(TO_RADIANS(bean->fov));
     bean->degreeX -= dx;
@@ -108,4 +125,65 @@ GLuint64 Touch::getCurrentTime() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+void* Touch::thread_fun(void *arg) {
+    Touch *touch = (Touch *)arg;
+    while(!touch->bExitThread) {
+        touch->step -= 0.002;
+        if(abs(touch->mDeltaX) > MIN) {
+            touch->mDeltaX -= touch->mDeltaX > 0 ? touch->step : -touch->step;
+            touch->mDeltaY = 0;
+        } else if(abs(touch->mDeltaY) > MIN){
+            touch->mDeltaX = 0;
+            touch->mDeltaY -= touch->mDeltaY > 0? touch->step : -touch->step;
+        } else {
+            touch->bExitThread = GL_TRUE;
+        }
+        touch->mTransformBean->degreeX -= touch->mDeltaX;
+        touch->mTransformBean->degreeY -= touch->mDeltaY;
+        touch->sleep(20);
+    }
+
+    pthread_kill(touch->pThreadForAnim, 0);
+}
+
+void Touch::sleep(GLuint ms) {
+    gettimeofday(&now, NULL);
+    now.tv_usec += 1000*ms;
+    if (now.tv_usec > 1000000) {
+        now.tv_sec += now.tv_usec / 1000000;
+        now.tv_usec %= 1000000;
+    }
+
+    outtime.tv_sec = now.tv_sec;
+    outtime.tv_nsec = now.tv_usec * 1000;
+
+    pthread_cond_timedwait(&cond, &mutex, &outtime);
+}
+
+void Touch::fling(GLfloat vx, GLfloat vy) {
+    float absVx = abs(vx);
+    float absVy = abs(vy);
+    if(absVx > absVy){
+        mDeltaX = -vx * DEGREE_PER_1000PX / 1000;
+        mDeltaY = 0;
+    } else {
+        mDeltaX = 0;
+        mDeltaY = vy * DEGREE_PER_1000PX / 1000;
+    }
+
+    if(mDeltaX != 0 || mDeltaY != 0){
+        step = MIN;
+        anim();
+    }
+}
+
+void Touch::anim() {
+    if(pThreadForAnim != 0) {
+        pthread_detach(pThreadForAnim);
+        pThreadForAnim = 0;
+    }
+    bExitThread = GL_FALSE;
+    pthread_create(&pThreadForAnim, NULL, thread_fun, this);
 }

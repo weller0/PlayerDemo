@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <pthread.h>
 #include "bean/bean_base.h"
 #include "log.h"
 
@@ -20,22 +21,39 @@ static const GLuint MODE_NORMAL = 1;
 static const GLuint MODE_DRAG = 2;
 static const GLuint MODE_ZOOM = 3;
 
+static const GLfloat MIN = 0.2f;
+static const GLfloat DEGREE_PER_1000PX = 1.2f;
+
 class Touch {
 public:
-    Touch(SettingsBean *settingsBean);
+    Touch(TransformBean *transformBean, SettingsBean *settingsBean);
 
     ~Touch();
 
     GLboolean onTouch(TransformBean *bean, GLuint action, GLuint pointerCount,
                       GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
 
+    void sleep(GLuint ms);
+
+    GLboolean bExitThread;
+    GLfloat mDeltaX, mDeltaY;
+    GLfloat step;
+    Point2 *mStartPoint;
+    Point2 *mLastPoint;
+    TransformBean *mTransformBean;
+    pthread_t pThreadForAnim;
+
 private:
     SettingsBean *mSettingsBean;
     GLfloat mDistance;
-    Point2 *mStartPoint;
     Point2 *mMidPoint;
     GLuint mMode;
     GLuint64 mLastTime;
+    struct timeval now;
+    struct timespec outtime;
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
+    GLuint64 mPressTime;
 
     void distance(GLfloat *dis, GLuint pointerCount,
                   GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
@@ -49,6 +67,12 @@ private:
                  GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
 
     GLuint64 getCurrentTime();
+
+    static void *thread_fun(void *arg);
+
+    void fling(GLfloat vx, GLfloat vy);
+
+    void anim();
 };
 
 #endif //TOUCH_H

@@ -3,7 +3,7 @@
 Transform::Transform(TransformBean *transformBean, SettingsBean *settingsBean) {
     mTransformBean = transformBean;
     mSettingsBean = settingsBean;
-    mTouch = new Touch(settingsBean);
+    mTouch = new Touch(transformBean, settingsBean);
     mSensor = new Sensor(settingsBean);
     mRegion = new Region();
     setDefaultRegion(mSettingsBean->mShowMode);
@@ -52,18 +52,18 @@ void Transform::limit(TransformBean *transformBean) {
 
 GLboolean Transform::onTouch(GLuint action, GLuint pointerCount,
                              GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
-    TransformBean *bean = new TransformBean();
-    bean->fov = mTransformBean->fov;
-    bean->degreeX = mTransformBean->degreeX;
-    bean->degreeY = mTransformBean->degreeY;
-    bean->degreeZ = mTransformBean->degreeZ;
-    GLboolean result = mTouch->onTouch(bean, action, pointerCount, x1, y1, x2, y2);
-    limit(bean);
-    mTransformBean->fov = bean->fov;
-    mTransformBean->degreeX = bean->degreeX;
-    mTransformBean->degreeY = bean->degreeY;
-    mTransformBean->degreeZ = bean->degreeZ;
-    delete bean;
+//    TransformBean *bean = new TransformBean();
+//    bean->fov = mTransformBean->fov;
+//    bean->degreeX = mTransformBean->degreeX;
+//    bean->degreeY = mTransformBean->degreeY;
+//    bean->degreeZ = mTransformBean->degreeZ;
+    GLboolean result = mTouch->onTouch(mTransformBean, action, pointerCount, x1, y1, x2, y2);
+//    limit(bean);
+//    mTransformBean->fov = bean->fov;
+//    mTransformBean->degreeX = bean->degreeX;
+//    mTransformBean->degreeY = bean->degreeY;
+//    mTransformBean->degreeZ = bean->degreeZ;
+//    delete bean;
     return result;
 }
 
