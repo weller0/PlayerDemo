@@ -1,3 +1,4 @@
+#include <bean/bean_base.h>
 #include "jni_api.h"
 
 extern "C" {
@@ -6,6 +7,60 @@ Transform *mTransform = NULL;
 Bean *mBean = NULL;
 
 jboolean bHaveLicence = JNI_FALSE;
+
+
+pthread_t pThreadForCircle;
+GLboolean bExitThread;
+struct timeval now;
+struct timespec outtime;
+pthread_cond_t cond;
+pthread_mutex_t mutex;
+
+void sleep(GLuint ms) {
+    gettimeofday(&now, NULL);
+    now.tv_usec += 1000*ms;
+    if (now.tv_usec > 1000000) {
+        now.tv_sec += now.tv_usec / 1000000;
+        now.tv_usec %= 1000000;
+    }
+
+    outtime.tv_sec = now.tv_sec;
+    outtime.tv_nsec = now.tv_usec * 1000;
+
+    pthread_cond_timedwait(&cond, &mutex, &outtime);
+}
+
+void* thread_fun(void *arg) {
+    sleep(2000);
+    float deltaX = 1;
+    while(!bExitThread) {
+        mBean->getTransformBean()->degreeX += deltaX;
+        if(mBean->getTransformBean()->degreeX >= 336){
+            deltaX -= 0.02;
+            if(deltaX < 0 || mBean->getTransformBean()->degreeX >= 360) {
+                mBean->getTransformBean()->degreeX = 0;
+                bExitThread = GL_TRUE;
+            }
+        }
+        sleep(20);
+    }
+
+    pthread_kill(pThreadForCircle, 0);
+    pthread_detach(pThreadForCircle);
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
+}
+
+void anim() {
+    if(pThreadForCircle != 0) {
+        pthread_detach(pThreadForCircle);
+        pThreadForCircle = 0;
+    }
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
+    bExitThread = GL_FALSE;
+    pthread_create(&pThreadForCircle, NULL, thread_fun, NULL);
+}
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
@@ -92,6 +147,11 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
     } else {
         pGLDisplay = new PlayYuv(mBean->getTransformBean(), mBean->getSettingsBean());
     }
+
+    if(mBean->getSettingsBean()->mCtrlStyle == CS_DRAG ||
+            mBean->getSettingsBean()->mCtrlStyle == CS_DRAG_ZOOM) {
+        anim();
+    }
 }
 
 void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
@@ -118,7 +178,9 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnTouch(JNIEnv *env,
                                                                  jfloat x2,
                                                                  jfloat y2) {
     //LOGI("onTouch action=%d, count=%d, 1(%f, %f), 2(%f, %f)", action, pointCount, x1, y1, x2, y2);
-    mTransform->onTouch(action, pointCount, x1, y1, x2, y2);
+    if(bExitThread) {
+        mTransform->onTouch(action, pointCount, x1, y1, x2, y2);
+    }
     return false;
 }
 
