@@ -73,7 +73,7 @@ void* PlayYuv::thread_fun(void *arg) {
     return NULL;
 }
 
-GLboolean PlayYuv::prepareTexture() {
+void PlayYuv::prepareTexture() {
     pYuvFrame = funcGetFrame();
     if (pYuvFrame != NULL && pYuvFrame->width > 0) {
         prepareComposeTexture(pYuvFrame);

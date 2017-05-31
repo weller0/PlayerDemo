@@ -1,4 +1,3 @@
-#include <bean/bean_base.h>
 #include "transform/touch.h"
 
 Touch::Touch(TransformBean *transformBean, SettingsBean *settingsBean) {
@@ -146,6 +145,7 @@ void* Touch::thread_fun(void *arg) {
     }
 
     pthread_kill(touch->pThreadForAnim, 0);
+    return NULL;
 }
 
 void Touch::sleep(GLuint ms) {

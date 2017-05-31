@@ -69,7 +69,7 @@ public:
 
     void compose(AVFrame *frame);
 
-    GLboolean prepareTexture();
+    void prepareTexture();
 
 protected:
     void loadShader();

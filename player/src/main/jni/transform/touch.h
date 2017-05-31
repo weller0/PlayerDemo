@@ -2,12 +2,14 @@
 #define TOUCH_H
 
 #include <GLES3/gl3.h>
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include "bean/bean_base.h"
 #include "log.h"
+
+using namespace std;
 
 static const GLuint ACTION_DOWN = 0;
 static const GLuint ACTION_UP = 1;

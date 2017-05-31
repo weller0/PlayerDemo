@@ -8,9 +8,8 @@ Bean *mBean = NULL;
 
 jboolean bHaveLicence = JNI_FALSE;
 
-
 pthread_t pThreadForCircle;
-GLboolean bExitThread;
+jboolean bExitThread;
 struct timeval now;
 struct timespec outtime;
 pthread_cond_t cond;
@@ -46,9 +45,8 @@ void* thread_fun(void *arg) {
     }
 
     pthread_kill(pThreadForCircle, 0);
-    pthread_detach(pThreadForCircle);
-    pthread_mutex_destroy(&mutex);
-    pthread_cond_destroy(&cond);
+
+    return NULL;
 }
 
 void anim() {
@@ -158,6 +156,12 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
                                                                 jobject obj) {
     LOGI("[jni_api]release");
     bHaveLicence = JNI_FALSE;
+    bExitThread = JNI_TRUE;
+    if(pThreadForCircle != 0) {
+        pthread_detach(pThreadForCircle);
+        pthread_mutex_destroy(&mutex);
+        pthread_cond_destroy(&cond);
+    }
     if (pGLDisplay != NULL) {
         delete pGLDisplay;
     }
