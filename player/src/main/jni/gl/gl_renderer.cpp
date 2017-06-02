@@ -302,8 +302,8 @@ void GLRenderer::draw(GLBean *glBean) {
                                          0.1,
                                          100);
             glBean->pMatrix->setIdentity();
-            glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
+            glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);
         }
         if (glBean->mProjectionHandle != -1) {
             glUniformMatrix4fv(glBean->mProjectionHandle, 1, GL_FALSE,
