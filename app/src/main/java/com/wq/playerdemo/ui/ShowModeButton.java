@@ -11,7 +11,7 @@ import com.wq.playerdemo.R;
  * Created by qiangwang on 7/22/16.
  */
 public class ShowModeButton extends Button implements View.OnClickListener {
-    private State mState = State.Original;
+    private State mState = State.Normal;
     private OnClickListener mOnClickListener;
 
     @Override
@@ -33,33 +33,21 @@ public class ShowModeButton extends Button implements View.OnClickListener {
 
     private void changeState() {
         switch (mState) {
-            case Original:
-                mState = State.Front;
-                setBackgroundResource(R.drawable.ic_mode_sphere_front);
+            case Normal:
+                mState = State.Asteroid;
+                setBackgroundResource(R.drawable.ic_mode_asteroid);
                 break;
-            case Front:
-                mState = State.FrontBack;
-                setBackgroundResource(R.drawable.ic_mode_sphere_front_back);
+            case Asteroid:
+                mState = State.Sphere;
+                setBackgroundResource(R.drawable.ic_mode_sphere);
                 break;
-            case FrontBack:
-                mState = State.Up;
+            /*case Sphere:
+                mState = State.Other;
                 setBackgroundResource(R.drawable.ic_mode_sphere_up);
-                break;
-            /*case Up:
-                mState = State.Down;
-                setBackgroundResource(R.drawable.ic_mode_sphere_down);
-                break;
-            case Down:
-                mState = State.VR;
-                setBackgroundResource(R.drawable.ic_mode_vr);
-                break;
-            case VR:
-                mState = State.Plane;
-                setBackgroundResource(R.drawable.ic_mode_plane);
                 break;*/
             default:
-                mState = State.Original;
-                setBackgroundResource(R.drawable.ic_mode_original);
+                mState = State.Normal;
+                setBackgroundResource(R.drawable.ic_mode_normal);
                 break;
         }
     }
@@ -69,17 +57,14 @@ public class ShowModeButton extends Button implements View.OnClickListener {
     }
 
     public void reset() {
-        mState = State.Original;
-        setBackgroundResource(R.drawable.ic_mode_original);
+        mState = State.Normal;
+        setBackgroundResource(R.drawable.ic_mode_normal);
     }
 
     public enum State {
-        Original,
-        Front,
-        FrontBack,
-        Up,
-        Down,
-        VR,
-        Plane
+        Normal,
+        Asteroid,
+        Sphere,
+        Other
     }
 }

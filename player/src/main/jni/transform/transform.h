@@ -21,7 +21,7 @@ public:
 
     void onSensor(GLfloat x, GLfloat y, GLfloat z, GLuint64 timestamp);
 
-    GLboolean onSettingsChanged(GLuint sm, GLuint rr, GLuint cs);
+    GLboolean onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint last_cs);
 
     void reset();
 

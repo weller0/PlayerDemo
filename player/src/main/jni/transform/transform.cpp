@@ -18,30 +18,35 @@ Transform::~Transform() {
 void Transform::setDefaultRegion(GLuint sm) {
     mRegion->setDefaultFov(FOV_MIN, FOV_MIN, FOV_DEFAULT);
     switch (sm){
-        case SM_ORIGINAL:
+        case SM_NORMAL:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
+            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
             break;
-        case SM_SPHERE_FRONT:
-            mRegion->setDefaultX(-90, 90, 0);
-            mRegion->setDefaultY(-90, 90, 0);
-            mRegion->setDefaultZ(0, 0, 0);
-            break;
-        case SM_SPHERE_FRONT_BACK:
+        case SM_ASTEROID:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
+            mRegion->setDefaultFov(0, 0, 110);
             break;
-        case SM_SPHERE_UP:
+        case SM_SPHERE:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
+            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
+            break;
+        case SM_OTHER:
+            mRegion->setDefaultX(0, 0, 0);
+            mRegion->setDefaultY(0, 0, 0);
+            mRegion->setDefaultZ(0, 0, 0);
+            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
             break;
         default:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
+            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
             break;
     }
 }
@@ -90,17 +95,17 @@ void Transform::reset() {
     mTransformBean->degreeZ = mRegion->degreeZ->value;
 }
 
-GLboolean Transform::onSettingsChanged(GLuint sm, GLuint rr, GLuint cs) {
+GLboolean Transform::onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint last_cs) {
     GLboolean result = GL_FALSE;
-    if (sm != mSettingsBean->mShowMode) {
+    if (last_sm != mSettingsBean->mShowMode) {
         LOGI("[Transform:onSettingsChanged]mShowMode is changed");
         setDefaultRegion(mSettingsBean->mShowMode);
         result = GL_TRUE;
     }
-    if (rr != mSettingsBean->mResolutionRatio) {
+    if (last_rr != mSettingsBean->mResolutionRatio) {
         LOGI("[Transform:onSettingsChanged]mResolutionRatio is changed");
     }
-    if (cs != mSettingsBean->mCtrlStyle) {
+    if (last_cs != mSettingsBean->mCtrlStyle) {
         LOGI("[Transform:onSettingsChanged]mCtrlStyle is changed");
     }
     reset();

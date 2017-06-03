@@ -168,21 +168,22 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
 
     private void setShowState(int sm) {
         if(mShowState != ShowState.NoLicence) {
-            switch (sm) {
-                case SettingsBean.SM_ORIGINAL:
-                case SettingsBean.SM_SPHERE_FRONT:
-                case SettingsBean.SM_SPHERE_UP:
-                case SettingsBean.SM_SPHERE_DOWN:
-                case SettingsBean.SM_PLANE_UP_DOWN:
-                case SettingsBean.SM_CYLINDER_UP_DOWN:
-                    setShowState(ShowState.Single);
-                    break;
-                case SettingsBean.SM_SPHERE_VR:
-                case SettingsBean.SM_SPHERE_FRONT_BACK:
-                    setShowState(ShowState.LeftAndRight);
-                    break;
-
-            }
+            setShowState(ShowState.Single);
+//            switch (sm) {
+//                case SettingsBean.SM_ORIGINAL:
+//                case SettingsBean.SM_SPHERE_FRONT:
+//                case SettingsBean.SM_SPHERE_UP:
+//                case SettingsBean.SM_SPHERE_DOWN:
+//                case SettingsBean.SM_PLANE_UP_DOWN:
+//                case SettingsBean.SM_CYLINDER_UP_DOWN:
+//                    setShowState(ShowState.Single);
+//                    break;
+//                case SettingsBean.SM_SPHERE_VR:
+//                case SettingsBean.SM_SPHERE_FRONT_BACK:
+//                    setShowState(ShowState.LeftAndRight);
+//                    break;
+//
+//            }
         }
     }
 

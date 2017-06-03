@@ -1,3 +1,4 @@
+#include <bean/bean_base.h>
 #include "gl/gl_renderer.h"
 
 GLRenderer::GLRenderer(TransformBean *transformBean, SettingsBean *settingsBean) {
@@ -216,19 +217,26 @@ void GLRenderer::prepareProcessBuffer() {
     pBeanProcess->bUpdateBuffer = GL_TRUE;
 }
 
-GLboolean GLRenderer::onSettingsChanged(GLuint sm, GLuint rr, GLuint cs) {
+GLboolean GLRenderer::onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint last_cs) {
     GLboolean result = GL_FALSE;
-    if (sm != mSettingsBean->mShowMode) {
-        LOGI("[Picture:onSettingsChanged]mShowMode is changed");
-        prepareProcessBuffer();
-//        prepareDisplayBuffer();
+    if (last_sm != mSettingsBean->mShowMode) {
+        LOGI("[Picture:onSettingsChanged]mShowMode is changed, cur=%d, last=%d", last_sm,
+             mSettingsBean->mShowMode);
+
+        if (mSettingsBean->mShowMode == SM_SPHERE) {
+            pBeanProcess->pMatrix->lookAt(0, 0, 2.5f, 0, 0, -1, 0, 1, 0);
+        } else {
+            pBeanProcess->pMatrix->lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
+        }
         result = GL_TRUE;
     }
-    if (rr != mSettingsBean->mResolutionRatio) {
-        LOGI("[Picture:onSettingsChanged]mResolutionRatio is changed");
+    if (last_rr != mSettingsBean->mResolutionRatio) {
+        LOGI("[Picture:onSettingsChanged]mResolutionRatio is changed, cur=%d, last=%d", last_rr,
+             mSettingsBean->mResolutionRatio);
     }
-    if (cs != mSettingsBean->mCtrlStyle) {
-        LOGI("[Picture:onSettingsChanged]mCtrlStyle is changed");
+    if (last_cs != mSettingsBean->mCtrlStyle) {
+        LOGI("[Picture:onSettingsChanged]mCtrlStyle is changed, cur=%d, last=%d", last_cs,
+             mSettingsBean->mCtrlStyle);
     }
     return result;
 }
@@ -302,8 +310,8 @@ void GLRenderer::draw(GLBean *glBean) {
                                          0.1,
                                          100);
             glBean->pMatrix->setIdentity();
-            glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);
+            glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
         }
         if (glBean->mProjectionHandle != -1) {
             glUniformMatrix4fv(glBean->mProjectionHandle, 1, GL_FALSE,

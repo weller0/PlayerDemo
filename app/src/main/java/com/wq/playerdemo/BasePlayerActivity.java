@@ -48,8 +48,6 @@ public class BasePlayerActivity extends BaseActivity implements
         mNoLicenceTextView.setTextColor(Color.rgb(255, 255, 255));
         mNoLicenceTextView.setGravity(Gravity.CENTER);
         noLicence.addView(mNoLicenceTextView);
-
-        mUIManager.getShowModeButton().setVisibility(View.GONE);
     }
 
     protected void setSource() {
@@ -103,7 +101,7 @@ public class BasePlayerActivity extends BaseActivity implements
                 break;
             case R.id.vr_btn_resolution:
                 if (mUIManager.getResolutionButton().getState() == ResolutionButton.State.P4K) {
-                    mVideoLayout.setMode(SettingsBean.SM_NULL, SettingsBean.RR_4K, SettingsBean.CS_NULL);
+                    mVideoLayout.setMode(SettingsBean.SM_NULL, SettingsBean.RR_2K, SettingsBean.CS_NULL);
                 } else {
                     mVideoLayout.setMode(SettingsBean.SM_NULL, SettingsBean.RR_720P, SettingsBean.CS_NULL);
                 }
@@ -117,37 +115,20 @@ public class BasePlayerActivity extends BaseActivity implements
                 break;
             case R.id.vr_btn_show_mode:
                 switch (mUIManager.getShowModeButton().getState()) {
-                    case Original:
-                        mVideoLayout.setMode(SettingsBean.SM_ORIGINAL, SettingsBean.RR_NULL, SettingsBean.CS_DRAG);
-                        mUIManager.getTouchButton().setVisibility(View.INVISIBLE);
-                        break;
-                    case Front:
-                        mVideoLayout.setMode(SettingsBean.SM_SPHERE_FRONT, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
+                    case Normal:
+                        mVideoLayout.setMode(SettingsBean.SM_NORMAL, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
                         mUIManager.getTouchButton().reset();
                         mUIManager.getTouchButton().setVisibility(View.VISIBLE);
                         break;
-                    case FrontBack:
-                        mVideoLayout.setMode(SettingsBean.SM_SPHERE_FRONT_BACK, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
+                    case Asteroid:
+                        mVideoLayout.setMode(SettingsBean.SM_ASTEROID, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
                         mUIManager.getTouchButton().reset();
                         mUIManager.getTouchButton().setVisibility(View.VISIBLE);
                         break;
-                    case Up:
-                        mVideoLayout.setMode(SettingsBean.SM_SPHERE_UP, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
+                    case Sphere:
+                        mVideoLayout.setMode(SettingsBean.SM_SPHERE, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
                         mUIManager.getTouchButton().reset();
                         mUIManager.getTouchButton().setVisibility(View.VISIBLE);
-                        break;
-                    case Down:
-                        mVideoLayout.setMode(SettingsBean.SM_SPHERE_DOWN, SettingsBean.RR_NULL, SettingsBean.CS_DRAG_ZOOM);
-                        mUIManager.getTouchButton().reset();
-                        mUIManager.getTouchButton().setVisibility(View.VISIBLE);
-                        break;
-                    case VR:
-                        mVideoLayout.setMode(SettingsBean.SM_SPHERE_VR, SettingsBean.RR_NULL, SettingsBean.CS_SENSOR);
-                        mUIManager.getTouchButton().setVisibility(View.INVISIBLE);
-                        break;
-                    case Plane:
-                        mVideoLayout.setMode(SettingsBean.SM_PLANE_UP_DOWN, SettingsBean.RR_NULL, SettingsBean.CS_NULL);
-                        mUIManager.getTouchButton().setVisibility(View.INVISIBLE);
                         break;
                 }
                 break;
@@ -213,8 +194,7 @@ public class BasePlayerActivity extends BaseActivity implements
     @Override
     public void onPrepareFinish() {
         mUIManager.initPlayerProgress(mVideoLayout.getTotalTime());
-        mVideoLayout.setMode(SettingsBean.SM_ORIGINAL, SettingsBean.RR_720P, SettingsBean.CS_DRAG_ZOOM);
-        mUIManager.getTouchButton().setVisibility(View.INVISIBLE);
+        mVideoLayout.setMode(SettingsBean.SM_NORMAL, SettingsBean.RR_2K, SettingsBean.CS_DRAG_ZOOM);
     }
 
     @Override

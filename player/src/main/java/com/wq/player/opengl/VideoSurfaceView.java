@@ -39,8 +39,8 @@ public class VideoSurfaceView extends GLSurfaceView {
 
     public VideoSurfaceView(Context context, boolean isUseBitmap, boolean isLeft) {
         super(context);
-        init(isUseBitmap, isLeft, SettingsBean.SM_ORIGINAL,
-                SettingsBean.CS_DRAG, SettingsBean.RR_1080P);
+        init(isUseBitmap, isLeft, SettingsBean.SM_NORMAL,
+                SettingsBean.CS_DRAG, SettingsBean.RR_2K);
     }
 
     private void init(boolean isUseBitmap, boolean isLeft, int sm, int cs, int rr) {

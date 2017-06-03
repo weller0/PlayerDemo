@@ -39,7 +39,7 @@ public class ResolutionButton extends Button implements View.OnClickListener {
                 break;
             default:
                 mState = State.P4K;
-                setBackgroundResource(R.drawable.ic_resolution_4k);
+                setBackgroundResource(R.drawable.ic_resolution_2k);
                 break;
         }
     }
@@ -50,7 +50,7 @@ public class ResolutionButton extends Button implements View.OnClickListener {
 
     public void reset() {
         mState = State.P4K;
-        setBackgroundResource(R.drawable.ic_resolution_4k);
+        setBackgroundResource(R.drawable.ic_resolution_2k);
     }
 
     public enum State {

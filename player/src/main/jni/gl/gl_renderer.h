@@ -165,7 +165,7 @@ public:
 
     void onDrawFrame(Bitmap *bmp, GLboolean updateFrameData);
 
-    GLboolean onSettingsChanged(GLuint sm, GLuint rr, GLuint cs);
+    GLboolean onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint last_cs);
 
 protected:
     GLBean *pBeanProcess;
