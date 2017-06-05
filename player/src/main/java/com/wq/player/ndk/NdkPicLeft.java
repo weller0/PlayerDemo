@@ -41,6 +41,23 @@ public class NdkPicLeft {
         nativeResetTransform();
     }
 
+    public interface Listener{
+        void onStart();
+        void onPause();
+    }
+    private Listener mListener;
+
+    public void setListener(Listener l){
+        mListener = l;
+    }
+    public void mpStart(){
+        if(mListener != null) mListener.onStart();
+    }
+
+    public void mpPause(){
+        if(mListener != null) mListener.onPause();
+    }
+
     private native int nativeOnSurfaceCreated();
 
     private native void nativeOnSurfaceChanged(int width, int height);

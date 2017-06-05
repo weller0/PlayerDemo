@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.wq.player.bean.SettingsBean;
+import com.wq.player.ndk.NdkPicLeft;
 import com.wq.player.opengl.SensorCtrl;
 import com.wq.player.opengl.VideoSurfaceView;
 import com.wq.player.player.PlayManager;
@@ -67,15 +68,27 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         mLeftSurfaceView = new VideoSurfaceView(getContext(), isPictureMode, true);
         mLeftSurfaceView.setTextureIdListener(this);
         addView(mLeftSurfaceView, lp);
+        mLeftSurfaceView.setListener(null);
+        mLeftSurfaceView.setListener(new NdkPicLeft.Listener() {
+            @Override
+            public void onStart() {
+                if(mPlayManager != null) mPlayManager.play();
+            }
+
+            @Override
+            public void onPause() {
+                if(mPlayManager != null) mPlayManager.pause();
+            }
+        });
     }
 
     public void setVideoSource(final String path, PlayManager.Listener listener) {
         if (isInitSource) return;
-        initSurface(false);
 
         isInitSource = true;
         mPlayManager = new PlayManager();
         isPictureMode = false;
+        initSurface(false);
         removeMsg();
         setPlayState(PlayState.UnPrepare);
         setFps(42);

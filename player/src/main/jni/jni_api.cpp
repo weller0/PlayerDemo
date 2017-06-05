@@ -15,9 +15,52 @@ struct timespec outtime;
 pthread_cond_t cond;
 pthread_mutex_t mutex;
 
+jmethodID midIsLeft;
+jmethodID midIsUseBitmap;
+jmethodID midCtrlStyle;
+jmethodID midShowMode;
+jmethodID midResolutionRatio;
+jmethodID midAppPath;
+
+jboolean bAttachThread = JNI_FALSE;
+JavaVM *mVm;
+
+jobject mJavaClass;
+jmethodID mMPPause;
+jmethodID mMPStart;
+
+JNIEnv *getJNIEnv() {
+    JNIEnv *env = NULL;
+    if (mVm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        int status = mVm->AttachCurrentThread(&env, 0);
+        if (status < 0) {
+            return NULL;
+        }
+        bAttachThread = JNI_TRUE;
+    }
+    return env;
+}
+
+void initCallBack(JNIEnv *env, jobject thiz) {
+    jclass mClass = env->GetObjectClass(thiz);
+    mJavaClass = env->NewGlobalRef(thiz);
+    mMPPause = env->GetMethodID(mClass, "mpPause", "()V");
+    mMPStart = env->GetMethodID(mClass, "mpStart", "()V");
+}
+
+void mpPause() {
+    JNIEnv *env = getJNIEnv();
+    env->CallVoidMethod(mJavaClass, mMPPause);
+}
+
+void mpStart() {
+    JNIEnv *env = getJNIEnv();
+    env->CallVoidMethod(mJavaClass, mMPStart);
+}
+
 void sleep(GLuint ms) {
     gettimeofday(&now, NULL);
-    now.tv_usec += 1000*ms;
+    now.tv_usec += 1000 * ms;
     if (now.tv_usec > 1000000) {
         now.tv_sec += now.tv_usec / 1000000;
         now.tv_usec %= 1000000;
@@ -29,20 +72,22 @@ void sleep(GLuint ms) {
     pthread_cond_timedwait(&cond, &mutex, &outtime);
 }
 
-void* thread_fun(void *arg) {
+void *thread_fun(void *arg) {
     sleep(2000);
+    mpPause();
     float deltaX = 1;
-    while(!bExitThread) {
+    while (!bExitThread) {
         mBean->getTransformBean()->degreeX += deltaX;
-        if(mBean->getTransformBean()->degreeX >= 336){
+        if (mBean->getTransformBean()->degreeX >= 336) {
             deltaX -= 0.02;
-            if(deltaX < 0 || mBean->getTransformBean()->degreeX >= 360) {
+            if (deltaX < 0 || mBean->getTransformBean()->degreeX >= 360) {
                 mBean->getTransformBean()->degreeX = 0;
                 bExitThread = GL_TRUE;
             }
         }
         sleep(20);
     }
+    mpStart();
 
     pthread_kill(pThreadForCircle, 0);
 
@@ -50,7 +95,7 @@ void* thread_fun(void *arg) {
 }
 
 void anim() {
-    if(pThreadForCircle != 0) {
+    if (pThreadForCircle != 0) {
         pthread_detach(pThreadForCircle);
         pThreadForCircle = 0;
     }
@@ -77,22 +122,15 @@ SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     return settingsBean;
 }
 
-jint JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnSurfaceCreated(JNIEnv *env,
-                                                                      jobject obj) {
+jint onSurfaceCreated(JNIEnv *env, jobject obj) {
     return pGLDisplay->onSurfaceCreated();
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnSurfaceChanged(JNIEnv *env,
-                                                                      jobject obj,
-                                                                      jint width,
-                                                                      jint height) {
+void onSurfaceChanged(JNIEnv *env, jobject obj, jint width, jint height) {
     pGLDisplay->onSurfaceChanged(width, height);
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
-                                                                 jobject obj,
-                                                                 jobject bmp,
-                                                                 jboolean updateFrameData) {
+void onDrawFrame(JNIEnv *env, jobject obj, jobject bmp, jboolean updateFrameData) {
     if (bHaveLicence) {
         if (bmp != NULL) {
             AndroidBitmapInfo bitmapInfo;
@@ -121,16 +159,17 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnDrawFrame(JNIEnv *env,
     }
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeSetSettingsBean(JNIEnv *env,
-                                                                     jobject obj,
-                                                                     jobject bean) {
+void setSettingsBean(JNIEnv *env, jobject obj, jobject bean) {
     LOGI("[jni_api]setSettingsBean");
     mBean->setSettingsBean(pGLDisplay, mTransform, cpp2JavaForSettingsBean(env, bean));
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
-                                                             jobject obj,
-                                                             jobject bean) {
+void resetTransform(JNIEnv *env, jobject obj) {
+    mTransform->reset();
+}
+
+void initApi(JNIEnv *env, jobject obj, jobject bean) {
+    initCallBack(env, obj);
     jclass clsSettingsBean = env->FindClass("com/wq/player/bean/SettingsBean");
     midIsUseBitmap = env->GetMethodID(clsSettingsBean, "isUseBitmap", "()Z");
     midIsLeft = env->GetMethodID(clsSettingsBean, "isLeft", "()Z");
@@ -146,18 +185,17 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeInitApi(JNIEnv *env,
         pGLDisplay = new PlayYuv(mBean->getTransformBean(), mBean->getSettingsBean());
     }
 
-    if(mBean->getSettingsBean()->mCtrlStyle == CS_DRAG ||
-            mBean->getSettingsBean()->mCtrlStyle == CS_DRAG_ZOOM) {
+    if (mBean->getSettingsBean()->mCtrlStyle == CS_DRAG ||
+        mBean->getSettingsBean()->mCtrlStyle == CS_DRAG_ZOOM) {
         anim();
     }
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
-                                                                jobject obj) {
+void releaseApi(JNIEnv *env, jobject obj) {
     LOGI("[jni_api]release");
     bHaveLicence = JNI_FALSE;
     bExitThread = JNI_TRUE;
-    if(pThreadForCircle != 0) {
+    if (pThreadForCircle != 0) {
         pthread_detach(pThreadForCircle);
         pthread_mutex_destroy(&mutex);
         pthread_cond_destroy(&cond);
@@ -173,37 +211,20 @@ void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeReleaseApi(JNIEnv *env,
     }
 }
 
-jboolean JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeOnTouch(JNIEnv *env,
-                                                                 jobject obj,
-                                                                 jint action,
-                                                                 jint pointCount,
-                                                                 jfloat x1,
-                                                                 jfloat y1,
-                                                                 jfloat x2,
-                                                                 jfloat y2) {
+jboolean onTouch(JNIEnv *env, jobject obj, jint action, jint pointCount,
+                 jfloat x1, jfloat y1, jfloat x2, jfloat y2) {
     //LOGI("onTouch action=%d, count=%d, 1(%f, %f), 2(%f, %f)", action, pointCount, x1, y1, x2, y2);
-    if(bExitThread) {
+    if (bExitThread) {
         mTransform->onTouch(action, pointCount, x1, y1, x2, y2);
     }
-    return false;
+    return GL_FALSE;
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkSensor_nativeOnSensor(JNIEnv *env,
-                                                             jobject obj,
-                                                             jfloat x,
-                                                             jfloat y,
-                                                             jfloat z,
-                                                             jlong timestamp) {
+void onSensor(JNIEnv *env, jobject obj, jfloat x, jfloat y, jfloat z, jlong timestamp) {
     mTransform->onSensor(x, y, z, timestamp);
 }
 
-void JNICALL Java_com_wq_player_ndk_NdkPicLeft_nativeResetTransform(JNIEnv *env,
-                                                                    jobject obj) {
-    mTransform->reset();
-}
-
-jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeA(JNIEnv *env,
-                                                                   jobject thiz) {
+jstring getEncodeA(JNIEnv *env, jobject thiz) {
     char ciphertext_0[128] = {0};
     Licence *licence = new Licence();
     licence->getEncodeA(ciphertext_0);
@@ -211,9 +232,7 @@ jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeA(JNIEnv *env,
     return env->NewStringUTF(ciphertext_0);
 }
 
-jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeH(JNIEnv *env,
-                                                                   jobject thiz,
-                                                                   jstring id) {
+jstring getEncodeH(JNIEnv *env, jobject thiz, jstring id) {
     jboolean isCopy;
     const char *str = env->GetStringUTFChars(id, &isCopy);
     char ciphertext_0[128] = {0};
@@ -223,12 +242,8 @@ jstring JNICALL Java_com_wq_player_ndk_NdkLicence_nativeGetEncodeH(JNIEnv *env,
     return env->NewStringUTF(ciphertext_0);
 }
 
-jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
-                                                                 jobject thiz,
-                                                                 jstring hardId,
-                                                                 jstring result1,
-                                                                 jstring result2) {
-    if(hardId != NULL && result1 != NULL && result2 !=NULL){
+jboolean isAllow(JNIEnv *env, jobject thiz, jstring hardId, jstring result1, jstring result2) {
+    if (hardId != NULL && result1 != NULL && result2 != NULL) {
         jboolean isCopy;
         const char *hId = env->GetStringUTFChars(hardId, &isCopy);
         const char *r1 = env->GetStringUTFChars(result1, &isCopy);
@@ -243,8 +258,84 @@ jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeIsAllow(JNIEnv *env,
     return bHaveLicence;
 }
 
-jboolean JNICALL Java_com_wq_player_ndk_NdkLicence_nativeHasLicence(JNIEnv *env,
-                                                                    jobject thiz) {
+jboolean hasLicence(JNIEnv *env, jobject thiz) {
     return bHaveLicence;
+}
+
+JNINativeMethod gMethodsPic[] = {
+        {"nativeOnSurfaceCreated", "()I",   (void *) onSurfaceCreated},
+        {"nativeOnSurfaceChanged", "(II)V", (void *) onSurfaceChanged},
+        {
+                "nativeOnDrawFrame",
+                "(Landroid/graphics/Bitmap;Z)V",
+                (void *) onDrawFrame},
+        {
+                "nativeSetSettingsBean",
+                "(Lcom/wq/player/bean/SettingsBean;)V",
+                (void *) setSettingsBean},
+        {"nativeReleaseApi",       "()V",   (void *) releaseApi},
+        {"nativeOnTouch",    "(IIFFFF)Z",   (void *) onTouch},
+        {"nativeResetTransform",   "()V",   (void *) resetTransform},
+        {
+                "nativeInitApi",
+                "(Lcom/wq/player/bean/SettingsBean;)V",
+                (void *) initApi}
+};
+JNINativeMethod gMethodsSensor[] = {
+        {"nativeOnSensor", "(FFFJ)V",   (void *) onSensor}
+};
+JNINativeMethod gMethodsLicence[] = {
+        {"nativeGetEncodeA", "()Ljava/lang/String;", (void *) getEncodeA},
+        {
+                "nativeGetEncodeH",
+                "(Ljava/lang/String;)Ljava/lang/String;",
+                (void *) getEncodeH},
+        {
+                "nativeIsAllow",
+                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
+                (void *) isAllow},
+        {"nativeHasLicence", "()Z",                  (void *) hasLicence}
+};
+
+int JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env;
+    mVm = vm;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+    jclass javaClass = env->FindClass("com/wq/player/ndk/NdkPicLeft");
+    if (javaClass == NULL) {
+        return JNI_ERR;
+    }
+    if (env->RegisterNatives(javaClass, gMethodsPic, sizeof(gMethodsPic) / sizeof(gMethodsPic[0])) <
+        0) {
+        return JNI_ERR;
+    }
+
+    javaClass = env->FindClass("com/wq/player/ndk/NdkSensor");
+    if (javaClass == NULL) {
+        return JNI_ERR;
+    }
+    if (env->RegisterNatives(javaClass, gMethodsSensor,
+                             sizeof(gMethodsSensor) / sizeof(gMethodsSensor[0])) < 0) {
+        return JNI_ERR;
+    }
+
+    javaClass = env->FindClass("com/wq/player/ndk/NdkLicence");
+    if (javaClass == NULL) {
+        return JNI_ERR;
+    }
+    if (env->RegisterNatives(javaClass, gMethodsLicence,
+                             sizeof(gMethodsLicence) / sizeof(gMethodsLicence[0])) < 0) {
+        return JNI_ERR;
+    }
+    return JNI_VERSION_1_6;
+}
+
+void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
+    if (bAttachThread) {
+        bAttachThread = JNI_FALSE;
+        vm->DetachCurrentThread();
+    }
 }
 }

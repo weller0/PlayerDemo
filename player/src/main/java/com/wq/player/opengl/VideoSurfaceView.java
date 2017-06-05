@@ -2,9 +2,12 @@ package com.wq.player.opengl;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -59,6 +62,8 @@ public class VideoSurfaceView extends GLSurfaceView {
         //setEGLContextClientVersion(3);
         setRenderer(mRenderer);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
+
+        setBackgroundColor(Color.BLACK);
     }
 
     public void destroy() {
@@ -118,6 +123,36 @@ public class VideoSurfaceView extends GLSurfaceView {
         }
         mPicLeft.setSettingsBean(mSettingsBean);
     }
+
+    private NdkPicLeft.Listener mListener;
+
+    public void setListener(NdkPicLeft.Listener l){
+        mListener = l;
+        if(mListener == null) {
+            mPicLeft.setListener(null);
+            return;
+        }
+        mPicLeft.setListener(new NdkPicLeft.Listener() {
+            @Override
+            public void onStart() {
+                if(mListener != null) mListener.onStart();
+            }
+
+            @Override
+            public void onPause() {
+                mHandler.sendEmptyMessage(0);
+                if(mListener != null) mListener.onPause();
+            }
+        });
+    }
+
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            setBackgroundColor(Color.TRANSPARENT);
+        }
+    };
 
     private class VideoRenderer implements Renderer {
         @Override
