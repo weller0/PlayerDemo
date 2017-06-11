@@ -74,7 +74,7 @@ void sleep(GLuint ms) {
 
 void *thread_fun(void *arg) {
     sleep(2000);
-    mpPause();
+//    mpPause();
     float deltaX = 1;
     while (!bExitThread) {
         mBean->getTransformBean()->degreeX += deltaX;
@@ -87,7 +87,7 @@ void *thread_fun(void *arg) {
         }
         sleep(20);
     }
-    mpStart();
+//    mpStart();
 
     pthread_kill(pThreadForCircle, 0);
 

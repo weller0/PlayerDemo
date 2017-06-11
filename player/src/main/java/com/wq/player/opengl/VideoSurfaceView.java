@@ -63,7 +63,7 @@ public class VideoSurfaceView extends GLSurfaceView {
         setRenderer(mRenderer);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
 
-        setBackgroundColor(Color.BLACK);
+//        setBackgroundColor(Color.BLACK);
     }
 
     public void destroy() {
