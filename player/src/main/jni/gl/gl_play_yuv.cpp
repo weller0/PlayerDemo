@@ -170,7 +170,7 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
                                glBean->pMatrix->getTransformMatrix());
         }
         if (glBean->mLightHandle != -1) {
-            glUniform3f(glBean->mLightHandle, 1, 1, 1);
+            glUniform3f(glBean->mLightHandle, light1y, light2y, 1);
         }
         if (i > 0) {
             glActiveTexture(GL_TEXTURE0);
@@ -322,8 +322,8 @@ void PlayYuv::compose(AVFrame *frame) {
     Mat y = Mat(frame->height, frame->width, CV_8UC1, frame->data[0]);
     Mat u = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[1]);
     Mat v = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[2]);
-    double alpha1Y;
-    double alpha2Y;//输出两个半球亮度调整的值
+//    double alpha1Y;
+//    double alpha2Y;//输出两个半球亮度调整的值
     Generate_fusion_area_YUV420P(
             Size(frame->width, frame->height),
             y, u, v,
@@ -332,7 +332,7 @@ void PlayYuv::compose(AVFrame *frame) {
             mapx_roi0_2, mapy_roi0_2,
             mapx_roi1_2, mapy_roi1_2,
             im, m_uv,
-            &alpha1Y,&alpha2Y,
+            &light1y,&light2y,
             &out_y, &out_u, &out_v);
 #if GL_PLAY_DEBUG
     imwrite("/storage/emulated/0/Movies/out_y.jpg", out_y );

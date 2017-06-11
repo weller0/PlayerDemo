@@ -38,13 +38,19 @@ const char gYuvAFragmentShader[] = "#version 300 es                         \n"
         "uniform vec3 light;                    \n"
         "out vec4 color;                        \n"
         "void main() {                          \n"
-        "  vec4 c = vec4((texture(tex_y, TexCoord).r - 16.0/255.0) * 1.164);\n"
+        "  vec4 y = texture(tex_y, TexCoord);   \n"
+        "  if(LightFlag.x == 1.0){              \n"
+        "    y = y * light.y;                   \n"
+        "  } else if(LightFlag.x == 0.0){       \n"
+        "    y = y * light.x;                   \n"
+        "  }                                    \n"
+        "  vec4 c = vec4((y.r - 16.0/255.0) * 1.164);    \n"
         "  vec4 U = vec4(texture(tex_u, TexCoord).r - 128.0/255.0);\n"
         "  vec4 V = vec4(texture(tex_v, TexCoord).r - 128.0/255.0);\n"
         "  c += V * vec4(1.596, -0.813, 0.0, 0.0);  \n"
         "  c += U * vec4(0.0, -0.392, 2.017, 0.0);  \n"
         "  c.a = 1.0;                           \n"
-        "  color = vec4(light, 1.0) * c;        \n"
+        "  color = c;                           \n"
         "}\n";
 
 class PlayYuv : public GLRenderer {
@@ -99,6 +105,7 @@ private:
     Mat mapx_roi1_2, mapy_roi1_2;
     Mat im, m_uv;
     Mat out_y, out_u, out_v;
+    double light1y, light2y;
 };
 
 #endif //GL_PLAY_YUV_H
