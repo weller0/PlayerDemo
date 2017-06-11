@@ -14,23 +14,24 @@
 #include "log.h"
 #include "compose/Generate_fusion_area.h"
 
-const char gYuvAVertexShader[] =
-        "#version 300 es                                                    \n"
+const char gYuvAVertexShader[] = "#version 300 es                           \n"
         "layout (location = "STRV(SHADER_IN_POSITION)") in vec3 position;   \n"
-        "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec2 texCoord; \n"
+        "layout (location = "STRV(SHADER_IN_TEX_COORDS)") in vec3 texCoord; \n"
         "out vec2 TexCoord;                                                 \n"
+        "out vec2 LightFlag;                                                \n"
         "uniform mat4 projection;                                           \n"
         "uniform mat4 camera;                                               \n"
         "uniform mat4 transform;                                            \n"
         "void main() {                                                      \n"
         "  gl_Position = projection*camera*transform*vec4(position, 1.0);   \n"
-        "  TexCoord = vec2(texCoord.s, 1.0-texCoord.t);                     \n"
+        "  TexCoord = vec2(texCoord.s, texCoord.t);                         \n"
+        "  LightFlag = vec2(texCoord.z, texCoord.x);                        \n"
         "}\n";
 
-const char gYuvAFragmentShader[] =
-        "#version 300 es                        \n"
+const char gYuvAFragmentShader[] = "#version 300 es                         \n"
         "precision mediump float;               \n"
         "in vec2 TexCoord;                      \n"
+        "in vec2 LightFlag;                     \n"
         "uniform sampler2D tex_y;               \n"
         "uniform sampler2D tex_u;               \n"
         "uniform sampler2D tex_v;               \n"
@@ -46,15 +47,6 @@ const char gYuvAFragmentShader[] =
         "  color = vec4(light, 1.0) * c;        \n"
         "}\n";
 
-//        "#version 300 es                        \n"
-//        "precision mediump float;               \n"
-//        "in vec2 TexCoord;                      \n"
-//        "uniform sampler2D tTexture;            \n"
-//        "uniform vec3 light;                    \n"
-//        "out vec4 color;                        \n"
-//        "void main() {                          \n"
-//        "  color = vec4(light, 1.0) * texture(tTexture, TexCoord); \n"
-//        "}\n";
 class PlayYuv : public GLRenderer {
 public:
     PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean);

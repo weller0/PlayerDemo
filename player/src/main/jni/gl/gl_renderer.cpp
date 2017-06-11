@@ -262,8 +262,8 @@ void GLRenderer::updateBuffer(GLBean *glBean) {
             glBufferData(GL_ARRAY_BUFFER, glBean->pTextureBuffer->getBuffer(i)->bufferSize,
                          glBean->pTextureBuffer->getBuffer(i)->buffer, GL_DYNAMIC_DRAW);
             // 设置纹理属性指针
-            glVertexAttribPointer(SHADER_IN_TEX_COORDS, 2, GL_FLOAT, GL_FALSE,
-                                  2 * sizeof(GLfloat), (GLvoid *) 0);
+            glVertexAttribPointer(SHADER_IN_TEX_COORDS, 3, GL_FLOAT, GL_FALSE,
+                                  3 * sizeof(GLfloat), (GLvoid *) 0);
             glEnableVertexAttribArray(SHADER_IN_TEX_COORDS);
             // 解绑VAO
             glBindVertexArray(0);
