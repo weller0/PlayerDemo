@@ -43,6 +43,7 @@ typedef struct {
 } SettingsBean;
 
 typedef struct {
+    GLfloat scale;
     GLfloat degreeX;
     GLfloat degreeY;
     GLfloat degreeZ;

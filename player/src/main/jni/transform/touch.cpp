@@ -1,3 +1,4 @@
+#include <bean/bean_base.h>
 #include "transform/touch.h"
 
 Touch::Touch(TransformBean *transformBean, SettingsBean *settingsBean) {
@@ -84,6 +85,16 @@ void Touch::setDrag(TransformBean *bean, GLfloat x, GLfloat y, GLuint time) {
     bean->degreeY -= dy;
 }
 
+GLfloat scaleMin = 0.6;
+GLfloat scaleMax = 1.9;
+GLfloat stepMin = 0.01;
+GLfloat stepMax = 0.05;
+GLfloat getStep(GLfloat currScale){
+    GLfloat result = stepMin - (scaleMin - currScale) * (stepMin - stepMax) / (scaleMin - scaleMax);
+    LOGE("[touch:setZoom]currScale=%f, step=%f", currScale, result);
+    return result;
+}
+
 void Touch::setZoom(TransformBean *bean, GLuint pointerCount,
                     GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
     GLfloat dis = 0;
@@ -91,9 +102,10 @@ void Touch::setZoom(TransformBean *bean, GLuint pointerCount,
     if (dis == mDistance) return;
     // 获取将要缩放到比例,一般是1左右
     GLfloat deltaFov = (dis - mDistance > 0 ? 1 : -1) * dis / mDistance;
-    deltaFov = deltaFov * sinf(TO_RADIANS(bean->fov));
+    deltaFov = deltaFov * getStep(bean->scale);
     mDistance = dis;
-    bean->fov -= deltaFov;
+//    bean->fov -= deltaFov;
+    bean->scale += deltaFov;
 }
 
 void Touch::distance(GLfloat *dis, GLuint pointerCount, GLfloat x1, GLfloat y1, GLfloat x2,

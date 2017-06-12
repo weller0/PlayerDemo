@@ -1,5 +1,7 @@
 #include <ffmpeg/libavcodec/avcodec.h>
+#include <bean/bean_base.h>
 #include "gl/gl_play_yuv.h"
+#include "gl_renderer.h"
 
 #define GL_PLAY_DEBUG 0
 
@@ -154,6 +156,7 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
                                          0.1,
                                          100);
             glBean->pMatrix->setIdentity();
+            glBean->pMatrix->scale(glBean->pTransformBean->scale, glBean->pTransformBean->scale, 1);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);
         }

@@ -19,7 +19,7 @@ public:
 
     void setTransformBean(TransformBean bean);
 
-    void setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov);
+    void setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLfloat scale);
 
     SettingsBean *getSettingsBean();
 

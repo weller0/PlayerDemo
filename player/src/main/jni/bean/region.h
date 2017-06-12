@@ -21,6 +21,7 @@ public:
     _Region *degreeX;
     _Region *degreeY;
     _Region *degreeZ;
+    _Region *scale;
     _Region *fov;
 
     Region();
@@ -35,6 +36,8 @@ public:
 
     void setDefaultFov(GLfloat min, GLfloat max, GLfloat def);
 
+    void setDefaultScale(GLfloat min, GLfloat max, GLfloat def);
+
     void limit(TransformBean *bean);
 
     void reset();
@@ -44,6 +47,7 @@ private:
     void setDegreeX(GLfloat x);
     void setDegreeY(GLfloat y);
     void setDegreeZ(GLfloat z);
+    void setScale(GLfloat s);
 };
 
 #endif //REGION_H

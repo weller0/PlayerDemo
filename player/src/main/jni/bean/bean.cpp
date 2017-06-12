@@ -4,7 +4,7 @@ Bean::Bean(SettingsBean bean) {
     mSettingsBean = new SettingsBean();
     mTransformBean = new TransformBean();
 
-    setTransformBean(0, 0, 0, FOV_DEFAULT);
+    setTransformBean(0, 0, 0, FOV_DEFAULT, 1);
     setSettingsBean(bean);
 }
 
@@ -76,12 +76,15 @@ void Bean::setTransformBean(TransformBean bean) {
     if (mTransformBean->fov != bean.fov) {
         mTransformBean->fov = bean.fov;
     }
-    LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f",
+    if (mTransformBean->scale != bean.scale) {
+        mTransformBean->scale = bean.scale;
+    }
+    LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f, scale=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
-         mTransformBean->degreeZ, mTransformBean->fov);
+         mTransformBean->degreeZ, mTransformBean->fov, mTransformBean->scale);
 }
 
-void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov) {
+void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLfloat scale) {
     LOGI("[bean:setTransformBean]last bean degree(%f, %f, %f), zoom=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov);
@@ -98,9 +101,12 @@ void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov) {
     if (mTransformBean->fov != fov) {
         mTransformBean->fov = fov;
     }
-    LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f",
+    if (mTransformBean->scale != scale) {
+        mTransformBean->scale = scale;
+    }
+    LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f, scale=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
-         mTransformBean->degreeZ, mTransformBean->fov);
+         mTransformBean->degreeZ, mTransformBean->fov, mTransformBean->scale);
 }
 
 SettingsBean *Bean::getSettingsBean() {

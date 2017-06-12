@@ -4,6 +4,7 @@ Region::Region() {
     degreeX = new _Region();
     degreeY = new _Region();
     degreeZ = new _Region();
+    scale = new _Region();
     fov = new _Region();
 }
 
@@ -11,6 +12,7 @@ Region::~Region() {
     delete degreeX;
     delete degreeY;
     delete degreeZ;
+    delete scale;
     delete fov;
 }
 
@@ -50,11 +52,21 @@ void Region::setDefaultZ(GLfloat min, GLfloat max, GLfloat def) {
     degreeZ->value = def;
 }
 
+void Region::setDefaultScale(GLfloat min, GLfloat max, GLfloat def) {
+    scale->maxSetUpValue = max;
+    scale->minSetUpValue = min;
+    scale->maxActualValue = max;
+    scale->minActualValue = min;
+    scale->defaultValue = def;
+    scale->value = def;
+}
+
 void Region::reset() {
     degreeX->value = degreeX->defaultValue;
     degreeY->value = degreeY->defaultValue;
     degreeZ->value = degreeZ->defaultValue;
     fov->value = fov->defaultValue;
+    scale->value = scale->defaultValue;
 }
 
 void Region::limit(TransformBean *bean) {
@@ -62,10 +74,12 @@ void Region::limit(TransformBean *bean) {
     setDegreeX(bean->degreeX);
     setDegreeY(bean->degreeY);
     setDegreeZ(bean->degreeZ);
+    setScale(bean->scale);
     bean->fov = fov->value;
     bean->degreeX = degreeX->value;
     bean->degreeY = degreeY->value;
     bean->degreeZ = degreeZ->value;
+    bean->scale = scale->value;
 }
 
 void Region::setDegreeX(GLfloat x) {
@@ -120,4 +134,15 @@ void Region::setFov(GLfloat fovValue, GLfloat ratio) {
         degreeY->maxActualValue = degreeY->maxSetUpValue - fov->value / 2;
         degreeY->minActualValue = degreeY->minSetUpValue + fov->value / 2;
     }
+}
+
+void Region::setScale(GLfloat s) {
+    if (scale->maxActualValue > scale->minActualValue) {
+        if (s > scale->maxActualValue) {
+            s = scale->maxActualValue;
+        } else if (s < scale->minActualValue) {
+            s = scale->minActualValue;
+        }
+    }
+    scale->value = s;
 }
