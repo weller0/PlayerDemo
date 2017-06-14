@@ -23,28 +23,24 @@ void Generate_fusion_area_init_YUV420SP(
         Point2f center_all_1, Point2f center_all_2,        //两个镜头中心参数
         float rad_all_1, float rad_all_2,                //镜头有效区域半径参数
         Mat RotationMatrix, Vec3d TMatrix, double pdK,    //3D 点标定外参
-        Mat *mapx_roi0, Mat *mapy_roi0,                    //imag_0 经纬展开 map Y
-        Mat *mapx_roi1, Mat *mapy_roi1,                    //imag_1 经纬展开 map Y
-        Mat *mapx_roi0_2, Mat *mapy_roi0_2,              //imag_0 经纬展开 map U V
-        Mat *mapx_roi1_2, Mat *mapy_roi1_2,              //imag_1 经纬展开 map U V
+        Mat *mapY_x, Mat *mapY_y,					//imag_0 经纬展开 map Y
+        Mat *mapUV_x, Mat *mapUV_y,					//imag_0 经纬展开 map Y
         Mat *m, Mat *m_uv)                                //融合区 Mark Y, Mark UV
 {
-    //float zoom_alpha;
-    // float rad_max = (rad_all_1>rad_all_2)?rad_all_1*2:rad_all_2*2;
-    // zoom_alpha = (src_size.height/rad_max);
-    //zoom_alpha = 1.0;
-    //imag_0 经纬展开 ROI 融合区 map
+    Mat in_mapx_roi0, in_mapy_roi0;					//imag_0 经纬展开 map Y
+    Mat in_mapx_roi1, in_mapy_roi1;					//imag_1 经纬展开 map Y
+    Mat in_mapx_roi0_2,in_mapy_roi0_2;             //imag_0 经纬展开 map U V
+    Mat in_mapx_roi1_2,in_mapy_roi1_2;            //imag_1 经纬展开 map U V
     Point2f center1 = Point2f(rad_all_1, rad_all_1);
     LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP rad_all_1 %f", rad_all_1);
-    Generate_Equirectangular_src_0_map_roi_yuv420sp(src_size, EQ_IMAG_SIZE, center1,
-                                                    rad_all_1,//center_all_1
+    Generate_Equirectangular_src_0_map_roi_yuv420sp(src_size, EQ_IMAG_SIZE, center1, rad_all_1,//center_all_1
                                                     RotationMatrix, TMatrix, pdK,
-                                                    mapx_roi0, mapy_roi0,
-                                                    mapx_roi0_2, mapy_roi0_2);//, zoom_alpha);
-#if OPENCV_DEBUG
+                                                    &in_mapx_roi0, &in_mapy_roi0,
+                                                    &in_mapx_roi0_2, &in_mapy_roi0_2);//, zoom_alpha);
+
     LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP mapx_roi0 cols %d,rows %d, mapx_roi0_uv cols %d,rows %d",
-                                        mapx_roi0->cols, mapx_roi0->rows,mapx_roi0_2->cols, mapx_roi0_2->rows);
-#endif
+                                        in_mapx_roi0.cols, in_mapx_roi0.rows,in_mapx_roi0_2.cols, in_mapx_roi0_2.rows);
+
     //imag_1 经纬展开 ROI 融合区 map
     int w2r1 = cvRound(rad_all_1 * 2);
     if (w2r1 % 4) {
@@ -56,15 +52,58 @@ void Generate_fusion_area_init_YUV420SP(
     LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP src_size.height %d", src_size.height);
     LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP rad_all_2 %f", rad_all_2);
     LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP center2_x %f", center_x);
-    Generate_Equirectangular_src_1_map_roi_yuv420sp(src_size, EQ_IMAG_SIZE, center2,
-                                                    rad_all_2,//center_all_2
-                                                    mapx_roi1, mapy_roi1,
-                                                    mapx_roi1_2, mapy_roi1_2);//, zoom_alpha);
-#if OPENCV_DEBUG
-    LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP mapx_roi1 cols %d,rows %d, mapx_roi1_uv cols %d,rows %d",
-    mapx_roi1->cols, mapx_roi1->rows,mapx_roi1_2->cols, mapx_roi1_2->rows);
-#endif
+    Generate_Equirectangular_src_1_map_roi_yuv420sp(src_size, EQ_IMAG_SIZE, center2, rad_all_2,//center_all_2
+                                                    &in_mapx_roi1, &in_mapy_roi1,
+                                                    &in_mapx_roi1_2, &in_mapy_roi1_2);//, zoom_alpha);
 
+    LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP mapx_roi1 cols %d,rows %d, mapx_roi1_uv cols %d,rows %d",
+                            in_mapx_roi1.cols, in_mapx_roi1.rows,in_mapx_roi1_2.cols, in_mapx_roi1_2.rows);
+
+/*测试视频 remap********************************************************************/
+    //1. 合并两幅图 Y map
+    vector<Mat> mapY_x_vector,mapY_y_vector;
+    Mat _mapY_x,_mapY_y;
+    mapY_x_vector.push_back(in_mapx_roi0);
+    mapY_x_vector.push_back(in_mapx_roi1);
+    vconcat(mapY_x_vector, _mapY_x);		//纵向合并 YUV
+
+    mapY_y_vector.push_back(in_mapy_roi0);
+    mapY_y_vector.push_back(in_mapy_roi1);
+    vconcat(mapY_y_vector, _mapY_y);		//纵向合并 YUV
+    LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP _mapY_x cols %d,rows %d, _mapY_y cols %d,rows %d",
+                                _mapY_x.cols, _mapY_x.rows,_mapY_y.cols, _mapY_y.rows);
+    *mapY_x = _mapY_x.clone();
+    *mapY_y = _mapY_y.clone();
+    //2. 合并两幅图 UV map
+    //将Umap 加偏移变成 Y map
+    Mat mapV_y0 = in_mapy_roi0_2.clone();
+    Mat mapV_y1 = in_mapy_roi1_2.clone();
+    for ( uint rows = 0; rows < in_mapx_roi0_2.rows ; rows++)    //行循环1080 y
+    {
+        for (uint cols = 0; cols < in_mapx_roi0_2.cols ; cols++)    //列循环1920 x
+        {
+                mapV_y0.at<float>(rows, cols) = in_mapy_roi0_2.at<float>(rows , cols ) + src_size.height/2;
+                mapV_y1.at<float>(rows, cols) = in_mapy_roi1_2.at<float>(rows , cols ) + src_size.height/2;
+        }
+    }
+    LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP mapV_y0 cols %d,rows %d, mapV_y1 cols %d,rows %d",
+                                mapV_y0.cols, mapV_y0.rows,mapV_y1.cols, mapV_y1.rows);
+    vector<Mat> mapUV_x_vector,mapUV_y_vector;
+    Mat _mapUV_x,_mapUV_y;
+    mapUV_x_vector.push_back(in_mapx_roi0_2);
+    mapUV_x_vector.push_back(in_mapx_roi1_2);
+    mapUV_x_vector.push_back(in_mapx_roi0_2);
+    mapUV_x_vector.push_back(in_mapx_roi1_2);
+    vconcat(mapUV_x_vector, _mapUV_x);		//纵向合并 YUV
+    mapUV_y_vector.push_back(in_mapy_roi0_2);
+    mapUV_y_vector.push_back(in_mapy_roi1_2);
+    mapUV_y_vector.push_back(mapV_y0);
+    mapUV_y_vector.push_back(mapV_y1);
+    vconcat(mapUV_y_vector, _mapUV_y);		//纵向合并 YUV
+    LOGD("[PlayYuv] Generate_fusion_area_init_YUV420SP _mapUV_x cols %d,rows %d, mapV_y1 cols %d,rows %d",
+                                _mapUV_x.cols, _mapUV_x.rows,_mapUV_y.cols, _mapUV_y.rows);
+    *mapUV_x = _mapUV_x.clone();
+    *mapUV_y = _mapUV_y.clone();
     /*生成拼接区线性融合 map**********************/
     int width = EQ_IMAG_SIZE.width;
     int roi_hight = FUSE_W * 2;                                        //roi 区域的高度
@@ -100,17 +139,41 @@ void Generate_fusion_area_init_YUV420SP(
 
 void Generate_fusion_area_YUV420P(
         Size src_size,                                    //输入原图大小
-        Mat img_Y, Mat img_U, Mat img_V,                  //输入原图片 Y U V 通道
-        Mat mapx_roi0, Mat mapy_roi0,                   //imag_0 经纬展开 map
-        Mat mapx_roi1, Mat mapy_roi1,                   //imag_1 经纬展开 map
-        Mat mapx_roi0_2, Mat mapy_roi0_2,                //imag_0 经纬展开 map
-        Mat mapx_roi1_2, Mat mapy_roi1_2,                //imag_1 经纬展开 map
+        Mat imag_yuv420p_Y,
+        Mat imag_yuv420p_UV,
+        Mat mapY_x, Mat mapY_y,					//imag_0 经纬展开 map Y
+        Mat mapUV_x, Mat mapUV_y,					//imag_0 经纬展开 map Y
         Mat m, Mat m_uv,                                 //融合区 Mark
         double *alpha1Y, double *alpha2Y,                    //输出两个半球亮度调整的值
         Mat *img_out_Y, Mat *img_out_U, Mat *img_out_V)    //输出融合区图像
 {
+    double time_all = static_cast<double>(getTickCount());
     /*A. 展开拼接部分图像************************************************************/
-    Mat eq_imgY_0, eq_imgY_1;
+        Mat image_Equ_420full_y;
+        Mat image_Equ_420full_uv;
+        double time0 = static_cast<double>(getTickCount());
+        remap(imag_yuv420p_Y, image_Equ_420full_y, mapY_x, mapY_y, INTER_LINEAR, BORDER_CONSTANT);
+        remap(imag_yuv420p_UV, image_Equ_420full_uv, mapUV_x, mapUV_y, INTER_LINEAR, BORDER_CONSTANT);
+        time0 = ((double)getTickCount() - time0)/getTickFrequency();
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P remap run time %f",time0);
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P image_Equ_420full_y cols %d,rows %d",image_Equ_420full_y.cols, image_Equ_420full_y.rows);
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P image_Equ_420full_uv cols %d,rows %d",image_Equ_420full_uv.cols, image_Equ_420full_uv.rows);
+        int roi_hight = cvRound((1.0 - ANGLE) * (float) EQ_IMAG_SIZE.height * 0.5);        //roi 区域的高度
+        int roi_width = EQ_IMAG_SIZE.width;
+        Mat eq_imgY_1 = image_Equ_420full_y(Rect2i(0, 0, roi_width, roi_hight));
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P eq_imgY_0 cols %d,rows %d",eq_imgY_1.cols, eq_imgY_1.rows);
+        Mat eq_imgY_0 = image_Equ_420full_y(Rect2i(0, roi_hight, roi_width, roi_hight));
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P eq_imgY_1 cols %d,rows %d",eq_imgY_0.cols, eq_imgY_0.rows);
+        Mat eq_imgU_1 = image_Equ_420full_uv(Rect2i(0, 0, roi_width/2, roi_hight/2));
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P eq_imgU_0 cols %d,rows %d",eq_imgU_1.cols, eq_imgU_1.rows);
+        Mat eq_imgU_0 = image_Equ_420full_uv(Rect2i(0, roi_hight/2, roi_width/2, roi_hight/2));
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P eq_imgU_1 cols %d,rows %d",eq_imgU_0.cols, eq_imgU_0.rows);
+        Mat eq_imgV_1 = image_Equ_420full_uv(Rect2i(0, roi_hight, roi_width/2, roi_hight/2));
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P eq_imgV_0 cols %d,rows %d",eq_imgV_1.cols, eq_imgV_1.rows);
+        Mat eq_imgV_0 = image_Equ_420full_uv(Rect2i(0, roi_hight + roi_hight/2, roi_width/2, roi_hight/2));
+        LOGD("[PlayYuv] Generate_fusion_area_YUV420P eq_imgV_1 cols %d,rows %d",eq_imgV_0.cols, eq_imgV_0.rows);
+
+/*    Mat eq_imgY_0, eq_imgY_1;
     Mat eq_imgU_0, eq_imgU_1;
     Mat eq_imgV_0, eq_imgV_1;
     double time0 = static_cast<double>(getTickCount());
@@ -136,7 +199,7 @@ void Generate_fusion_area_YUV420P(
     time0 = static_cast<double>(getTickCount());
     remap(img_V, eq_imgV_0, mapx_roi1_2, mapy_roi1_2, INTER_LINEAR, BORDER_CONSTANT);
     time0 = ((double) getTickCount() - time0) / getTickFrequency();
-    LOGD("[PlayYuv] Generate_fusion_area_YUV420P remap run time v1 %f", time0);
+    LOGD("[PlayYuv] Generate_fusion_area_YUV420P remap run time v1 %f", time0);*/
 #if OPENCV_DEBUG
     imwrite("/storage/emulated/0/Movies/img_Y.jpg", img_Y );
     imwrite("/storage/emulated/0/Movies/img_U.jpg", img_U );
@@ -231,14 +294,9 @@ void Generate_fusion_area_YUV420P(
 #if OPENCV_DEBUG
     LOGD("[PlayYuv] LaplacianBlend_YUV420P start convert to float");
 #endif
-    if (*alpha1Y > (1.0 - 1e-8)) {
-        little_roiY_0.convertTo(R_Y, CV_32F, (1.0 / 255.0));
-        little_roiY_1.convertTo(L_Y, CV_32F, (*alpha2Y / 255.0));
-    } else {
-        little_roiY_0.convertTo(R_Y, CV_32F, (*alpha1Y / 255.0));
-        little_roiY_1.convertTo(L_Y, CV_32F, (1.0 / 255.0));
-    }
 
+    little_roiY_0.convertTo(R_Y, CV_32F, (*alpha1Y / 255.0));
+    little_roiY_1.convertTo(L_Y, CV_32F, (*alpha2Y / 255.0));
 
     little_roiU_0.convertTo(R_U, CV_32F, 1.0 / 255.0);
     little_roiU_1.convertTo(L_U, CV_32F, 1.0 / 255.0);
@@ -254,9 +312,6 @@ void Generate_fusion_area_YUV420P(
     LOGD("[PlayYuv] LaplacianBlend_YUV420P start LaplacianBlend");
 #endif
     time0 = static_cast<double>(getTickCount());
-//    Mat_<float> blend_Y = LaplacianBlend_YUV420P(L_Y, R_Y, m);            //拉普拉斯融合	Y
-//    Mat_<float> blend_U = LaplacianBlend_YUV420P(L_U, R_U, m_uv);        //拉普拉斯融合	U
-//    Mat_<float> blend_V = LaplacianBlend_YUV420P(L_V, R_V, m_uv);            //拉普拉斯融合	V
     Mat_<float> blend_Y = LaplacianBlend_YUV420P(R_Y, L_Y, m);            //拉普拉斯融合	Y
     Mat_<float> blend_U = LaplacianBlend_YUV420P(R_U, L_U, m_uv);        //拉普拉斯融合	U
     Mat_<float> blend_V = LaplacianBlend_YUV420P(R_V, L_V, m_uv);            //拉普拉斯融合	V
@@ -281,15 +336,35 @@ void Generate_fusion_area_YUV420P(
     LOGD("[PlayYuv] LaplacianBlend_YUV420P convert result to u8 end");
 #endif
     time0 = static_cast<double>(getTickCount());
+
     //取到非重叠区
-    Mat out_roiY_0 = eq_imgY_1(rec_0);//rec_0);
-#if OPENCV_DEBUG
-    LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiY_0 size(%d,%d)",out_roiY_0.cols,out_roiY_0.rows);
-#endif
-    Mat out_roiY_1 = eq_imgY_0(rec_1);//rec_1);
-#if OPENCV_DEBUG
-    LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiY_1 size(%d,%d)",out_roiY_1.cols,out_roiY_1.rows);
-#endif
+    Mat out_roiY_0,out_roiY_1;
+    if(*alpha1Y == 1.0) //*alpha2Y = 1,不需要变化，
+    {
+        Mat out_roiY_0_t = eq_imgY_1(rec_0);//rec_0);
+        out_roiY_0 = *alpha2Y*out_roiY_0_t;
+    #if OPENCV_DEBUG
+        LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiY_0 size(%d,%d)",out_roiY_0.cols,out_roiY_0.rows);
+    #endif
+        out_roiY_1 = eq_imgY_0(rec_1);//rec_1);
+    #if OPENCV_DEBUG
+        LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiY_1 size(%d,%d)",out_roiY_1.cols,out_roiY_1.rows);
+    #endif
+    }else
+    {
+            out_roiY_0 = eq_imgY_1(rec_0);//rec_0);
+        #if OPENCV_DEBUG
+            LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiY_0 size(%d,%d)",out_roiY_0.cols,out_roiY_0.rows);
+        #endif
+            Mat out_roiY_1_t = eq_imgY_0(rec_1);//rec_1);
+            out_roiY_1= *alpha1Y * out_roiY_1_t;
+        #if OPENCV_DEBUG
+            LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiY_1 size(%d,%d)",out_roiY_1.cols,out_roiY_1.rows);
+        #endif
+    }
+
+
+
     Mat out_roiU_0 = eq_imgU_1(rec_uv_0);//rec_uv_0);
 #if OPENCV_DEBUG
     LOGD("[PlayYuv] LaplacianBlend_YUV420P start get Non-Overlapping ROI out_roiU_0 size(%d,%d)",out_roiU_0.cols,out_roiU_0.rows);
@@ -346,4 +421,7 @@ void Generate_fusion_area_YUV420P(
     *img_out_V = Splice_image_V.clone();
     time0 = ((double) getTickCount() - time0) / getTickFrequency();
     LOGD("[PlayYuv] Generate_fusion_area_YUV420P result clone time %f", time0);
+
+    time_all = ((double)getTickCount() - time_all)/getTickFrequency();
+    LOGD("[PlayYuv] Generate_fusion_area_YUV420P fusion_area all time %f",time_all);
 }

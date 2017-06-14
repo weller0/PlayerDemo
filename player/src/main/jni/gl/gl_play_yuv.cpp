@@ -1,4 +1,3 @@
-#include <ffmpeg/libavcodec/avcodec.h>
 #include <bean/bean_base.h>
 #include "gl/gl_play_yuv.h"
 #include "gl_renderer.h"
@@ -26,7 +25,7 @@ PlayYuv::PlayYuv(TransformBean *transformBean, SettingsBean *settingsBean)
             LOGE("[PictureYuv]%s", dlerror());
         }
     }
-    if(pSO != NULL) {
+    if (pSO != NULL) {
         funcGetFrame = (AVFrame *(*)()) dlsym(pSO, "ijkmp_get_frame");
     }
     bExitThread = GL_FALSE;
@@ -62,13 +61,13 @@ GLuint PlayYuv::updateTextureAuto() {
     return 15;
 }
 
-void* PlayYuv::thread_fun(void *arg) {
-    PlayYuv *play = (PlayYuv *)arg;
-    while(!play->bExitThread) {
+void *PlayYuv::thread_fun(void *arg) {
+    PlayYuv *play = (PlayYuv *) arg;
+    while (!play->bExitThread) {
         pthread_mutex_lock(&play->mutex);
         pthread_cond_wait(&play->cond, &play->mutex);
         pthread_mutex_unlock(&play->mutex);
-        if(play->pYuvFrame != NULL) {
+        if (play->pYuvFrame != NULL) {
             play->compose(play->pYuvFrame);
         }
     }
@@ -134,7 +133,7 @@ void PlayYuv::prepareTexture() {
 }
 
 GLboolean PlayYuv::prepareDraw(Bitmap *bmp, GLboolean updateFrameData) {
-    if(!updateFrameData) return GL_TRUE;
+    if (!updateFrameData) return GL_TRUE;
     pthread_mutex_lock(&mutex);
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mutex);
@@ -150,13 +149,40 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
         checkGLError("draw glBindVertexArray +");
 
         // 投影、Camera、变换赋值
+        glBean->pMatrix->perspective(glBean->pTransformBean->fov,
+                                     (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
+                                     0.1,
+                                     100);
+        glBean->pMatrix->setIdentity();
         if (glBean->pTransformBean != NULL) {
-            glBean->pMatrix->perspective(glBean->pTransformBean->fov,
-                                         (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
-                                         0.1,
-                                         100);
-            glBean->pMatrix->setIdentity();
-            glBean->pMatrix->scale(glBean->pTransformBean->scale, glBean->pTransformBean->scale, 1);
+            switch (mSettingsBean->mShowMode) {
+                case SM_NORMAL:
+                    glBean->pMatrix->scale(glBean->pTransformBean->scale,
+                                           glBean->pTransformBean->scale,
+                                           1);
+                    break;
+                case SM_ASTEROID:
+                    GLfloat fov = 140;
+                    glBean->pMatrix->perspective(fov,
+                                                 (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
+                                                 0.1,
+                                                 100);
+                    GLfloat fov_2 = fov / 2.0f;
+                    GLfloat fov2_a = fov_2 * (GLfloat) (M_PI / 180.0f);
+                    GLfloat h = 0;
+                    if (fov_2 <= 45.0) {
+                        h = (GLfloat) (-1 * sin(M_PI_4 - fov2_a) / sin(fov2_a));
+                    } else if (fov_2 > 45.0 && fov_2 <= 90.0) {
+                        h = (GLfloat) (M_SQRT2 * sin(fov2_a - M_PI_4));
+                    } else if (fov_2 > 90.0 && fov_2 <= 180.0) {
+                        h = (GLfloat) (sin(M_PI - fov2_a) +
+                                       sin(M_PI - fov2_a) * tan(M_PI - fov2_a) -
+                                       1);
+                    }
+                    glBean->pMatrix->lookAt(0, 0, (GLfloat) h, 0, 0, -1, 0, 1, 0);
+                    break;
+            }
+
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);
         }
@@ -205,13 +231,14 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
         glBindVertexArray(0);
         checkGLError("draw glBindVertexArray -");
     }
+
 }
 
 GLboolean PlayYuv::useYUVDraw() {
     return GL_TRUE;
 }
 
-void PlayYuv::prepareComposeTexture(AVFrame * frame) {
+void PlayYuv::prepareComposeTexture(AVFrame *frame) {
     if (bFirstFrameForCompose) {
         bFirstFrameForCompose = GL_FALSE;
         initCompose(frame->width, frame->height);
@@ -290,7 +317,7 @@ void PlayYuv::initCompose(GLint w, GLint h) {
     center_all_1 = Point2f((float) parameter[0], (float) parameter[1]);
     rad_all_1 = (float) parameter[2] + 0.5;
     center_all_2 = Point2f((float) parameter[3], (float) parameter[4]);
-    rad_all_2 = (float) parameter[5]-0.58337;
+    rad_all_2 = (float) parameter[5] - 0.58337;
     RotationMatrix.at<double>(0, 0) = parameter[6];
     RotationMatrix.at<double>(0, 1) = parameter[7];
     RotationMatrix.at<double>(0, 2) = parameter[8];
@@ -314,28 +341,27 @@ void PlayYuv::initCompose(GLint w, GLint h) {
             center_all_1, center_all_2,          //两个镜头中心参数
             rad_all_1, rad_all_2,                //镜头有效区域半径参数
             RotationMatrix, TMatrix, pdK,        //3D 点标定外参
-            &imapx_roi0, &imapy_roi0,            //imag_0 经纬展开 map
-            &imapx_roi1, &imapy_roi1,            //imag_1 经纬展开 map
-            &mapx_roi0_2, &mapy_roi0_2,
-            &mapx_roi1_2, &mapy_roi1_2,
+            &mapY_x, &mapY_y,                    //imag_0 经纬展开 map Y
+            &mapUV_x, &mapUV_y,                  //imag_0 经纬展开 map Y
             &im, &m_uv);                         //融合区 Mark
 }
 
 void PlayYuv::compose(AVFrame *frame) {
-    Mat y = Mat(frame->height, frame->width, CV_8UC1, frame->data[0]);
-    Mat u = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[1]);
-    Mat v = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[2]);
-//    double alpha1Y;
-//    double alpha2Y;//输出两个半球亮度调整的值
+    //Mat y = Mat(frame->height, frame->width, CV_8UC1, frame->data[0]);
+    //Mat u = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[1]);
+    //Mat v = Mat(frame->height / 2, frame->width / 2, CV_8UC1, frame->data[2]);
+    //double alpha1Y;
+    //double alpha2Y;//输出两个半球亮度调整的值
+    Mat src_Y420_y = Mat(frame->height, frame->width, CV_8UC1, frame->data[0]);
+    Mat src_Y420_uv = Mat(frame->height, (frame->width / 2), CV_8UC1, frame->data[1]);
     Generate_fusion_area_YUV420P(
             Size(frame->width, frame->height),
-            y, u, v,
-            imapx_roi0, imapy_roi0,
-            imapx_roi1, imapy_roi1,
-            mapx_roi0_2, mapy_roi0_2,
-            mapx_roi1_2, mapy_roi1_2,
+            src_Y420_y,
+            src_Y420_uv,
+            mapY_x, mapY_y,           //imag_0 经纬展开 map Y
+            mapUV_x, mapUV_y,         //imag_0 经纬展开 map Y
             im, m_uv,
-            &light1y,&light2y,
+            &light1y, &light2y,
             &out_y, &out_u, &out_v);
 #if GL_PLAY_DEBUG
     imwrite("/storage/emulated/0/Movies/out_y.jpg", out_y );

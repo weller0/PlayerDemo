@@ -101,11 +101,12 @@ void Touch::setZoom(TransformBean *bean, GLuint pointerCount,
     distance(&dis, pointerCount, x1, y1, x2, y2);
     if (dis == mDistance) return;
     // 获取将要缩放到比例,一般是1左右
-    GLfloat deltaFov = (dis - mDistance > 0 ? 1 : -1) * dis / mDistance;
-    deltaFov = deltaFov * getStep(bean->scale);
+    GLfloat delta = (dis - mDistance > 0 ? 1 : -1) * dis / mDistance;
+    delta = delta * getStep(bean->scale);
+//    delta = (GLfloat)(delta * sin(TO_RADIANS(bean->fov)));
     mDistance = dis;
-//    bean->fov -= deltaFov;
-    bean->scale += deltaFov;
+//    bean->fov -= delta;
+    bean->scale += delta;
 }
 
 void Touch::distance(GLfloat *dis, GLuint pointerCount, GLfloat x1, GLfloat y1, GLfloat x2,

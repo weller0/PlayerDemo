@@ -99,11 +99,13 @@ private:
 
     static void *thread_fun(void *arg);
 
-    //初始化参数
-    Mat imapx_roi0, imapy_roi0;     //imag_0 经纬展开 map
-    Mat imapx_roi1, imapy_roi1;     //imag_1 经纬展开 map
+    // 初始化参数
+    Mat mapY_x, mapY_y;             // imag_0 经纬展开 map Y
+    Mat mapUV_x, mapUV_y;           // imag_0 经纬展开 map uv
+    /*Mat imapx_roi0, imapy_roi0;   // imag_0 经纬展开 map
+    Mat imapx_roi1, imapy_roi1;     // imag_1 经纬展开 map
     Mat mapx_roi0_2, mapy_roi0_2;
-    Mat mapx_roi1_2, mapy_roi1_2;
+    Mat mapx_roi1_2, mapy_roi1_2;*/
     Mat im, m_uv;
     Mat out_y, out_u, out_v;
     double light1y, light2y;
