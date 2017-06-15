@@ -72,12 +72,12 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         mLeftSurfaceView.setListener(new NdkPicLeft.Listener() {
             @Override
             public void onStart() {
-                if(mPlayManager != null) mPlayManager.play();
+                play();
             }
 
             @Override
             public void onPause() {
-                if(mPlayManager != null) mPlayManager.pause();
+                pause();
             }
         });
     }

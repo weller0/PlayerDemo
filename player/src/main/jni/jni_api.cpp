@@ -41,6 +41,13 @@ JNIEnv *getJNIEnv() {
     return env;
 }
 
+void detachCurrentThread(){
+    if (bAttachThread) {
+        bAttachThread = JNI_FALSE;
+        mVm->DetachCurrentThread();
+    }
+}
+
 void initCallBack(JNIEnv *env, jobject thiz) {
     jclass mClass = env->GetObjectClass(thiz);
     mJavaClass = env->NewGlobalRef(thiz);
@@ -51,11 +58,13 @@ void initCallBack(JNIEnv *env, jobject thiz) {
 void mpPause() {
     JNIEnv *env = getJNIEnv();
     env->CallVoidMethod(mJavaClass, mMPPause);
+    detachCurrentThread();
 }
 
 void mpStart() {
     JNIEnv *env = getJNIEnv();
     env->CallVoidMethod(mJavaClass, mMPStart);
+    detachCurrentThread();
 }
 
 void sleep(GLuint ms) {
@@ -73,8 +82,9 @@ void sleep(GLuint ms) {
 }
 
 void *thread_fun(void *arg) {
-    sleep(2000);
-//    mpPause();
+    sleep(2500);
+//    mpStart();
+    mpPause();
     float deltaX = 1;
     while (!bExitThread) {
         mBean->getTransformBean()->degreeX += deltaX;
@@ -87,7 +97,7 @@ void *thread_fun(void *arg) {
         }
         sleep(20);
     }
-//    mpStart();
+    mpStart();
 
     pthread_kill(pThreadForCircle, 0);
 
@@ -333,9 +343,6 @@ int JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 }
 
 void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
-    if (bAttachThread) {
-        bAttachThread = JNI_FALSE;
-        vm->DetachCurrentThread();
-    }
+    detachCurrentThread();
 }
 }
