@@ -179,7 +179,7 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
                                        sin(M_PI - fov2_a) * tan(M_PI - fov2_a) -
                                        1);
                     }
-                    glBean->pMatrix->lookAt(0, 0, (GLfloat) h, 0, 0, -1, 0, 1, 0);
+                    glBean->pMatrix->lookAt(0, 0, h, 0, 0, -1, 0, 1, 0);
                     break;
             }
 

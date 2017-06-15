@@ -29,9 +29,8 @@ static const GLuint RR_1080P = RR_BASE + 4;
 static const GLuint RR_720P = RR_BASE + 5;
 static const GLuint RR_MAX = RR_BASE + 6;
 
-static const GLfloat FOV_MIN = 20;
-static const GLfloat FOV_MAX = 70;
 static const GLfloat FOV_DEFAULT = 54;
+static const GLfloat FOV_ASTEROID = 160;
 
 typedef struct {
     GLboolean isLeft;

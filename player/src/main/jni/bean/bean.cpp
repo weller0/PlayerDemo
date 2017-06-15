@@ -1,4 +1,5 @@
 #include "bean/bean.h"
+#include "bean_base.h"
 
 Bean::Bean(SettingsBean bean) {
     mSettingsBean = new SettingsBean();
@@ -115,4 +116,46 @@ SettingsBean *Bean::getSettingsBean() {
 
 TransformBean *Bean::getTransformBean() {
     return mTransformBean;
+}
+
+void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
+    GLuint timeBetweenFrame = 40;
+    GLuint stepCount = (GLuint) (1.0f * during / timeBetweenFrame);
+    GLfloat stepScale = (to->scale - from->scale) / stepCount;
+    GLfloat stepX = (to->degreeX - from->degreeX) / stepCount;
+    GLfloat stepY = (to->degreeY - from->degreeY) / stepCount;
+    GLfloat stepZ = (to->degreeZ - from->degreeZ) / stepCount;
+    GLfloat stepFov = (to->fov - from->fov) / stepCount;
+
+    for (int i = 0; i < stepCount; i++) {
+        from->fov       += stepFov;
+        from->scale     += stepScale;
+        from->degreeX   += stepX;
+        from->degreeY   += stepY;
+        from->degreeZ   += stepZ;
+
+        sleep(timeBetweenFrame);
+    }
+}
+
+void Bean::sleep(GLuint ms) {
+    gettimeofday(&now, NULL);
+    now.tv_usec += 1000 * ms;
+    if (now.tv_usec > 1000000) {
+        now.tv_sec += now.tv_usec / 1000000;
+        now.tv_usec %= 1000000;
+    }
+
+    outtime.tv_sec = now.tv_sec;
+    outtime.tv_nsec = now.tv_usec * 1000;
+
+    pthread_cond_timedwait(&cond, &mutex, &outtime);
+}
+
+void Bean::set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale) {
+    if(x != -1) bean->degreeX = x;
+    if(y != -1) bean->degreeY = y;
+    if(z != -1) bean->degreeZ = z;
+    if(fov != -1) bean->fov = fov;
+    if(scale != -1) bean->scale = scale;
 }

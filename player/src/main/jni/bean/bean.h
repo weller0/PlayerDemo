@@ -25,9 +25,20 @@ public:
 
     TransformBean *getTransformBean();
 
+    void anim(TransformBean *from, TransformBean *to, GLuint during);
+
+    void sleep(GLuint ms);
+
+    void set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale);
+
 private:
     SettingsBean *mSettingsBean;
     TransformBean *mTransformBean;
+
+    struct timeval now;
+    struct timespec outtime;
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
 };
 
 #endif //BEAN_H

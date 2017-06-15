@@ -10,8 +10,6 @@ jboolean bHaveLicence = JNI_FALSE;
 
 pthread_t pThreadForCircle;
 jboolean bExitThread;
-struct timeval now;
-struct timespec outtime;
 pthread_cond_t cond;
 pthread_mutex_t mutex;
 
@@ -67,38 +65,29 @@ void mpStart() {
     detachCurrentThread();
 }
 
-void sleep(GLuint ms) {
-    gettimeofday(&now, NULL);
-    now.tv_usec += 1000 * ms;
-    if (now.tv_usec > 1000000) {
-        now.tv_sec += now.tv_usec / 1000000;
-        now.tv_usec %= 1000000;
-    }
-
-    outtime.tv_sec = now.tv_sec;
-    outtime.tv_nsec = now.tv_usec * 1000;
-
-    pthread_cond_timedwait(&cond, &mutex, &outtime);
-}
-
 void *thread_fun(void *arg) {
-    sleep(2500);
+    mBean->sleep(2500);
 //    mpStart();
     mpPause();
-    float deltaX = 1;
-    while (!bExitThread) {
-        mBean->getTransformBean()->degreeX += deltaX;
-        if (mBean->getTransformBean()->degreeX >= 336) {
-            deltaX -= 0.02;
-            if (deltaX < 0 || mBean->getTransformBean()->degreeX >= 360) {
-                mBean->getTransformBean()->degreeX = 0;
-                bExitThread = GL_TRUE;
-            }
-        }
-        sleep(20);
-    }
+    TransformBean *toBean = new TransformBean();
+    mBean->set(toBean, 0, 0, 0, FOV_DEFAULT, 1);
+    mBean->set(mBean->getTransformBean(), -90, -90, 0, FOV_ASTEROID, 1);
+    mBean->anim(mBean->getTransformBean(), toBean, 3000);
+    delete toBean;
+//    float deltaX = 1;
+//    while (!bExitThread) {
+//        mBean->getTransformBean()->degreeX += deltaX;
+//        if (mBean->getTransformBean()->degreeX >= 336) {
+//            deltaX -= 0.02;
+//            if (deltaX < 0 || mBean->getTransformBean()->degreeX >= 360) {
+//                mBean->getTransformBean()->degreeX = 0;
+//                bExitThread = GL_TRUE;
+//            }
+//        }
+//        mBean->sleep(20);
+//    }
     mpStart();
-
+    bExitThread = JNI_TRUE;
     pthread_kill(pThreadForCircle, 0);
 
     return NULL;
