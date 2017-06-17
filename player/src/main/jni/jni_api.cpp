@@ -10,8 +10,6 @@ jboolean bHaveLicence = JNI_FALSE;
 
 pthread_t pThreadForCircle;
 jboolean bExitThread;
-pthread_cond_t cond;
-pthread_mutex_t mutex;
 
 jmethodID midIsLeft;
 jmethodID midIsUseBitmap;
@@ -67,25 +65,12 @@ void mpStart() {
 
 void *thread_fun(void *arg) {
     mBean->sleep(2500);
-//    mpStart();
     mpPause();
     TransformBean *toBean = new TransformBean();
     mBean->set(toBean, 0, 0, 0, FOV_DEFAULT, 1);
     mBean->set(mBean->getTransformBean(), -90, -90, 0, FOV_ASTEROID, 1);
     mBean->anim(mBean->getTransformBean(), toBean, 3000);
     delete toBean;
-//    float deltaX = 1;
-//    while (!bExitThread) {
-//        mBean->getTransformBean()->degreeX += deltaX;
-//        if (mBean->getTransformBean()->degreeX >= 336) {
-//            deltaX -= 0.02;
-//            if (deltaX < 0 || mBean->getTransformBean()->degreeX >= 360) {
-//                mBean->getTransformBean()->degreeX = 0;
-//                bExitThread = GL_TRUE;
-//            }
-//        }
-//        mBean->sleep(20);
-//    }
     mpStart();
     bExitThread = JNI_TRUE;
     pthread_kill(pThreadForCircle, 0);
@@ -98,8 +83,6 @@ void anim() {
         pthread_detach(pThreadForCircle);
         pThreadForCircle = 0;
     }
-    pthread_mutex_init(&mutex, NULL);
-    pthread_cond_init(&cond, NULL);
     bExitThread = GL_FALSE;
     pthread_create(&pThreadForCircle, NULL, thread_fun, NULL);
 }
@@ -196,8 +179,6 @@ void releaseApi(JNIEnv *env, jobject obj) {
     bExitThread = JNI_TRUE;
     if (pThreadForCircle != 0) {
         pthread_detach(pThreadForCircle);
-        pthread_mutex_destroy(&mutex);
-        pthread_cond_destroy(&cond);
     }
     if (pGLDisplay != NULL) {
         delete pGLDisplay;

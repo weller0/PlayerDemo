@@ -121,19 +121,86 @@ TransformBean *Bean::getTransformBean() {
 void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
     GLuint timeBetweenFrame = 40;
     GLuint stepCount = (GLuint) (1.0f * during / timeBetweenFrame);
-    GLfloat stepScale = (to->scale - from->scale) / stepCount;
-    GLfloat stepX = (to->degreeX - from->degreeX) / stepCount;
-    GLfloat stepY = (to->degreeY - from->degreeY) / stepCount;
-    GLfloat stepZ = (to->degreeZ - from->degreeZ) / stepCount;
-    GLfloat stepFov = (to->fov - from->fov) / stepCount;
+    GLuint startCount = stepCount / 10;
+    GLuint endCount = stepCount / 10;
+    GLuint midCount = stepCount - startCount - endCount;
+    GLfloat midStepScale = (to->scale - from->scale) / stepCount;
+    GLfloat midStepX = (to->degreeX - from->degreeX) / stepCount;
+    GLfloat midStepY = (to->degreeY - from->degreeY) / stepCount;
+    GLfloat midStepZ = (to->degreeZ - from->degreeZ) / stepCount;
+    GLfloat midStepFov = (to->fov - from->fov) / stepCount;
 
-    for (int i = 0; i < stepCount; i++) {
+    LOGE("qqqq from:%f, %f, %f; to:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
+         to->degreeX, to->degreeY, to->fov);
+    // 单帧变化值
+    GLfloat stepScale = 0;
+    GLfloat stepX = 0;
+    GLfloat stepY = 0;
+    GLfloat stepZ = 0;
+    GLfloat stepFov = 0;
+
+    // 单帧变化值的加速度
+    // 加速-匀速-减速
+    // 1 加速
+    GLfloat aScale = midStepScale / startCount;
+    GLfloat aX = midStepX / startCount;
+    GLfloat aY = midStepY / startCount;
+    GLfloat aZ = midStepZ / startCount;
+    GLfloat aFov = midStepFov / startCount;
+
+    for (int i = 0; i < startCount; i++) {
+        stepScale += aScale;
+        stepX += aX;
+        stepY += aY;
+        stepZ += aZ;
+        stepFov += aFov;
+
+        from->fov       += stepFov;
+        from->scale     += stepScale;
+        from->degreeX   += stepX;
+        from->degreeY   += stepY;
+        from->degreeZ   += stepZ;
+        LOGE("qqqq aaaa %f, %f, %f; step:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
+             stepX, stepY, stepFov);
+        sleep(timeBetweenFrame);
+    }
+
+    // 2 匀速
+    for (int i = 0; i < midCount; i++) {
         from->fov       += stepFov;
         from->scale     += stepScale;
         from->degreeX   += stepX;
         from->degreeY   += stepY;
         from->degreeZ   += stepZ;
 
+        LOGE("qqqq bbbb %f, %f, %f; step:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
+             stepX, stepY, stepFov);
+        sleep(timeBetweenFrame);
+    }
+
+    // 3 减速
+    aScale = stepScale * stepScale / (to->scale - from->scale) / 2;
+    aX = stepX * stepX / (to->degreeX - from->degreeX) / 2;
+    aY = stepY * stepY / (to->degreeY - from->degreeY) / 2;
+    aZ = stepZ * stepZ / (to->degreeZ - from->degreeZ) / 2;
+    aFov = stepFov * stepFov / (to->fov - from->fov) / 2;
+
+    while(  fabsf(stepFov) > 0.01 || fabsf(stepScale) > 0.01 ||
+            fabsf(stepX) > 0.01 || fabsf(stepY) > 0.01 || fabsf(stepZ) > 0.01) {
+        stepScale -= aScale;
+        stepX -= aX;
+        stepY -= aY;
+        stepZ -= aZ;
+        stepFov -= aFov;
+
+        from->fov       += stepFov;
+        from->scale     += stepScale;
+        from->degreeX   += stepX;
+        from->degreeY   += stepY;
+        from->degreeZ   += stepZ;
+
+        LOGE("qqqq cccc %f, %f, %f; step:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
+             stepX, stepY, stepFov);
         sleep(timeBetweenFrame);
     }
 }

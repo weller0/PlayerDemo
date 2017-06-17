@@ -18,33 +18,33 @@ Transform::~Transform() {
 
 void Transform::setDefaultRegion(GLuint sm) {
 //    mRegion->setDefaultFov(FOV_MIN, FOV_MAX, FOV_DEFAULT);
-    switch (sm){
+    switch (sm) {
         case SM_NORMAL:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
-            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
+            mRegion->setDefaultFov(30, 120, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
             break;
         case SM_ASTEROID:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
-            mRegion->setDefaultFov(0, 0, FOV_ASTEROID);
+            mRegion->setDefaultFov(FOV_ASTEROID, FOV_ASTEROID + 0.01f, FOV_ASTEROID);
             mRegion->setDefaultScale(0.6, 2.0, 1);
             break;
         case SM_SPHERE:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
-            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
+            mRegion->setDefaultFov(FOV_DEFAULT, FOV_DEFAULT + 0.01f, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
             break;
         case SM_OTHER:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
-            mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
+            mRegion->setDefaultFov(30, 150, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
             break;
         default:
