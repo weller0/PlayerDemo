@@ -23,7 +23,7 @@ void Transform::setDefaultRegion(GLuint sm) {
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
-            mRegion->setDefaultFov(30, 120, FOV_DEFAULT);
+            mRegion->setDefaultFov(60, 120, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
             break;
         case SM_ASTEROID:

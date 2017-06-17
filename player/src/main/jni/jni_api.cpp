@@ -52,29 +52,33 @@ void initCallBack(JNIEnv *env, jobject thiz) {
 }
 
 void mpPause() {
+    LOGE("[jni_api]mpPause");
     JNIEnv *env = getJNIEnv();
     env->CallVoidMethod(mJavaClass, mMPPause);
     detachCurrentThread();
 }
 
 void mpStart() {
+    LOGE("[jni_api]mpStart");
     JNIEnv *env = getJNIEnv();
     env->CallVoidMethod(mJavaClass, mMPStart);
     detachCurrentThread();
 }
 
 void *thread_fun(void *arg) {
+    LOGI("[jni_api]anim start");
     mBean->sleep(2500);
     mpPause();
     TransformBean *toBean = new TransformBean();
     mBean->set(toBean, 0, 0, 0, FOV_DEFAULT, 1);
-    mBean->set(mBean->getTransformBean(), -90, -90, 0, FOV_ASTEROID, 1);
+    mBean->set(mBean->getTransformBean(), -90, 90, 0, FOV_ASTEROID, 1);
     mBean->anim(mBean->getTransformBean(), toBean, 3000);
     delete toBean;
     mpStart();
     bExitThread = JNI_TRUE;
     pthread_kill(pThreadForCircle, 0);
 
+    LOGI("[jni_api]anim end");
     return NULL;
 }
 

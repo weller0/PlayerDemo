@@ -130,8 +130,6 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
     GLfloat midStepZ = (to->degreeZ - from->degreeZ) / stepCount;
     GLfloat midStepFov = (to->fov - from->fov) / stepCount;
 
-    LOGE("qqqq from:%f, %f, %f; to:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
-         to->degreeX, to->degreeY, to->fov);
     // 单帧变化值
     GLfloat stepScale = 0;
     GLfloat stepX = 0;
@@ -160,8 +158,6 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
         from->degreeX   += stepX;
         from->degreeY   += stepY;
         from->degreeZ   += stepZ;
-        LOGE("qqqq aaaa %f, %f, %f; step:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
-             stepX, stepY, stepFov);
         sleep(timeBetweenFrame);
     }
 
@@ -172,9 +168,6 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
         from->degreeX   += stepX;
         from->degreeY   += stepY;
         from->degreeZ   += stepZ;
-
-        LOGE("qqqq bbbb %f, %f, %f; step:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
-             stepX, stepY, stepFov);
         sleep(timeBetweenFrame);
     }
 
@@ -198,9 +191,6 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
         from->degreeX   += stepX;
         from->degreeY   += stepY;
         from->degreeZ   += stepZ;
-
-        LOGE("qqqq cccc %f, %f, %f; step:%f, %f, %f", from->degreeX, from->degreeY, from->fov,
-             stepX, stepY, stepFov);
         sleep(timeBetweenFrame);
     }
 }

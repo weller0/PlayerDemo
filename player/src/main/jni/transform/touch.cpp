@@ -103,9 +103,10 @@ void Touch::setZoom(TransformBean *bean, GLuint pointerCount,
     // 获取将要缩放到比例,一般是1左右
     GLfloat delta = (dis - mDistance > 0 ? 1 : -1) * dis / mDistance;
 //    delta = delta * getStep(bean->scale);
-    delta = (GLfloat)(delta * sin(TO_RADIANS(bean->fov)));
+    delta = (GLfloat)(delta * sin(TO_RADIANS(bean->fov)) * 0.4f);
 //    mDistance = dis;
     bean->fov -= delta;
+    LOGE("[touch:setZoom]delta=%f, fov=%f", delta, bean->fov);
 //    bean->scale += delta;
 }
 
