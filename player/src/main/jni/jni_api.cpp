@@ -5,6 +5,8 @@ extern "C" {
 GLRenderer *pGLDisplay = NULL;
 Transform *mTransform = NULL;
 Bean *mBean = NULL;
+TransformBean *toTransformBean = NULL;
+jint during = 0;
 
 jboolean bHaveLicence = JNI_FALSE;
 
@@ -52,28 +54,28 @@ void initCallBack(JNIEnv *env, jobject thiz) {
 }
 
 void mpPause() {
-    LOGE("[jni_api]mpPause");
+    LOGI("[jni_api]mpPause");
     JNIEnv *env = getJNIEnv();
     env->CallVoidMethod(mJavaClass, mMPPause);
     detachCurrentThread();
 }
 
 void mpStart() {
-    LOGE("[jni_api]mpStart");
+    LOGI("[jni_api]mpStart");
     JNIEnv *env = getJNIEnv();
     env->CallVoidMethod(mJavaClass, mMPStart);
     detachCurrentThread();
 }
 
-void *thread_fun(void *arg) {
+
+void *thread_run_start(void *arg) {
     LOGI("[jni_api]anim start");
-    mBean->sleep(2500);
+    mBean->sleep(3000);
     mpPause();
-    TransformBean *toBean = new TransformBean();
-    mBean->set(toBean, 0, 0, 0, FOV_DEFAULT, 1);
+    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1);
     mBean->set(mBean->getTransformBean(), -90, 90, 0, FOV_ASTEROID, 1);
-    mBean->anim(mBean->getTransformBean(), toBean, 3000);
-    delete toBean;
+    during = 3000;
+    mBean->anim(mBean->getTransformBean(), toTransformBean, during);
     mpStart();
     bExitThread = JNI_TRUE;
     pthread_kill(pThreadForCircle, 0);
@@ -82,13 +84,41 @@ void *thread_fun(void *arg) {
     return NULL;
 }
 
-void anim() {
+void startPlayAnim() {
+    if (pThreadForCircle != 0) {
+        pthread_detach(pThreadForCircle);
+        pThreadForCircle = 0;
+    }
+
+    if (mBean->getSettingsBean()->mCtrlStyle == CS_DRAG ||
+        mBean->getSettingsBean()->mCtrlStyle == CS_DRAG_ZOOM) {
+        bExitThread = GL_FALSE;
+        pthread_create(&pThreadForCircle, NULL, thread_run_start, NULL);
+    }
+}
+
+void *thread_run_switch_mode(void *arg) {
+    LOGI("[jni_api]anim start");
+    mBean->anim(mBean->getTransformBean(), toTransformBean, during);
+    mpStart();
+    bExitThread = JNI_TRUE;
+    pthread_kill(pThreadForCircle, 0);
+
+    LOGI("[jni_api]anim end");
+    return NULL;
+}
+
+void switchModeAnim() {
     if (pThreadForCircle != 0) {
         pthread_detach(pThreadForCircle);
         pThreadForCircle = 0;
     }
     bExitThread = GL_FALSE;
-    pthread_create(&pThreadForCircle, NULL, thread_fun, NULL);
+
+    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1);
+    during = 3000;
+
+    pthread_create(&pThreadForCircle, NULL, thread_run_start, NULL);
 }
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
@@ -109,6 +139,7 @@ SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
 }
 
 jint onSurfaceCreated(JNIEnv *env, jobject obj) {
+    startPlayAnim();
     return pGLDisplay->onSurfaceCreated();
 }
 
@@ -164,16 +195,12 @@ void initApi(JNIEnv *env, jobject obj, jobject bean) {
     midResolutionRatio = env->GetMethodID(clsSettingsBean, "getResolutionRatio", "()I");
     midAppPath = env->GetMethodID(clsSettingsBean, "getAppPath", "()Ljava/lang/String;");
     mBean = new Bean(cpp2JavaForSettingsBean(env, bean));
+    toTransformBean = new TransformBean();
     mTransform = new Transform(mBean->getTransformBean(), mBean->getSettingsBean());
     if (mBean->getSettingsBean()->isUseBitmap) {
         pGLDisplay = new Picture(mBean->getTransformBean(), mBean->getSettingsBean());
     } else {
         pGLDisplay = new PlayYuv(mBean->getTransformBean(), mBean->getSettingsBean());
-    }
-
-    if (mBean->getSettingsBean()->mCtrlStyle == CS_DRAG ||
-        mBean->getSettingsBean()->mCtrlStyle == CS_DRAG_ZOOM) {
-        anim();
     }
 }
 
@@ -192,6 +219,9 @@ void releaseApi(JNIEnv *env, jobject obj) {
     }
     if (mBean != NULL) {
         delete mBean;
+    }
+    if(toTransformBean != NULL){
+        delete toTransformBean;
     }
 }
 
@@ -258,6 +288,7 @@ JNINativeMethod gMethodsPic[] = {
                 "(Lcom/wq/player/bean/SettingsBean;)V",
                 (void *) setSettingsBean},
         {"nativeReleaseApi",       "()V",   (void *) releaseApi},
+        {"nativeStartPlayAnim",    "()V",   (void *) startPlayAnim},
         {"nativeOnTouch",    "(IIFFFF)Z",   (void *) onTouch},
         {"nativeResetTransform",   "()V",   (void *) resetTransform},
         {

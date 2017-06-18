@@ -33,6 +33,10 @@ public class NdkPicLeft {
         nativeReleaseApi();
     }
 
+    public void startPlayAnim() {
+        //nativeStartPlayAnim();
+    }
+
     public boolean onTouch(int action, int pointCount, float x1, float y1, float x2, float y2) {
         return nativeOnTouch(action, pointCount, x1, y1, x2, y2);
     }
@@ -41,21 +45,24 @@ public class NdkPicLeft {
         nativeResetTransform();
     }
 
-    public interface Listener{
+    public interface Listener {
         void onStart();
+
         void onPause();
     }
+
     private Listener mListener;
 
-    public void setListener(Listener l){
+    public void setListener(Listener l) {
         mListener = l;
     }
-    public void mpStart(){
-        if(mListener != null) mListener.onStart();
+
+    public void mpStart() {
+        if (mListener != null) mListener.onStart();
     }
 
-    public void mpPause(){
-        if(mListener != null) mListener.onPause();
+    public void mpPause() {
+        if (mListener != null) mListener.onPause();
     }
 
     private native int nativeOnSurfaceCreated();
@@ -67,6 +74,8 @@ public class NdkPicLeft {
     private native void nativeInitApi(SettingsBean bean);
 
     private native void nativeReleaseApi();
+
+    private native void nativeStartPlayAnim();
 
     private native void nativeSetSettingsBean(SettingsBean bean);
 

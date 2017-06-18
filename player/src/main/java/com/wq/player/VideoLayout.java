@@ -260,8 +260,13 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         if (mPlayerListener != null) mPlayerListener.updatePlayingProgress(time);
     }
 
+    boolean isFirst = true;
     @Override
     public void updateBufferProgress(int percent) {
+        if(isFirst && percent > 0){
+            isFirst = false;
+            mLeftSurfaceView.startPlayAnim();
+        }
         if (mPlayerListener != null) mPlayerListener.updateBufferProgress(percent);
     }
 

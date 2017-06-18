@@ -77,6 +77,10 @@ public class VideoSurfaceView extends GLSurfaceView {
     public void resume() {
     }
 
+    public void startPlayAnim(){
+        if(mPicLeft != null) mPicLeft.startPlayAnim();
+    }
+
     public boolean onTouch(MotionEvent event) {
         if(mSettingsBean.getCtrlStyle() == SettingsBean.CS_SENSOR){
             return false;
