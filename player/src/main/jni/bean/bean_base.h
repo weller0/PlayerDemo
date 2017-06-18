@@ -47,6 +47,7 @@ typedef struct {
     GLfloat degreeY;
     GLfloat degreeZ;
     GLfloat fov;
+    GLfloat lookAtCenterZ;
 } TransformBean;
 
 typedef struct {

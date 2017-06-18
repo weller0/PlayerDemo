@@ -25,13 +25,14 @@ void Transform::setDefaultRegion(GLuint sm) {
             mRegion->setDefaultZ(0, 0, 0);
             mRegion->setDefaultFov(60, 120, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
+            mRegion->setDefaultCenterZ(0, 0, 0);
             break;
         case SM_ASTEROID:
             mRegion->setDefaultX(0, 0, 0);
             mRegion->setDefaultY(0, 0, 0);
             mRegion->setDefaultZ(0, 0, 0);
             mRegion->setDefaultFov(FOV_ASTEROID, FOV_ASTEROID + 0.01f, FOV_ASTEROID);
-            mRegion->setDefaultScale(0.6, 2.0, 1);
+            mRegion->setDefaultCenterZ(0, 0, 0);
             break;
         case SM_SPHERE:
             mRegion->setDefaultX(0, 0, 0);
@@ -39,6 +40,7 @@ void Transform::setDefaultRegion(GLuint sm) {
             mRegion->setDefaultZ(0, 0, 0);
             mRegion->setDefaultFov(FOV_DEFAULT, FOV_DEFAULT + 0.01f, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
+            mRegion->setDefaultCenterZ(0, 0, 1.5);
             break;
         case SM_OTHER:
             mRegion->setDefaultX(0, 0, 0);
@@ -46,6 +48,7 @@ void Transform::setDefaultRegion(GLuint sm) {
             mRegion->setDefaultZ(0, 0, 0);
             mRegion->setDefaultFov(30, 150, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
+            mRegion->setDefaultCenterZ(0, 0, 0);
             break;
         default:
             mRegion->setDefaultX(0, 0, 0);
@@ -53,6 +56,7 @@ void Transform::setDefaultRegion(GLuint sm) {
             mRegion->setDefaultZ(0, 0, 0);
             mRegion->setDefaultFov(0, 0, FOV_DEFAULT);
             mRegion->setDefaultScale(0.6, 2.0, 1);
+            mRegion->setDefaultCenterZ(0, 0, 0);
             break;
     }
 }
@@ -69,6 +73,7 @@ GLboolean Transform::onTouch(GLuint action, GLuint pointerCount,
     bean->degreeY = mTransformBean->degreeY;
     bean->degreeZ = mTransformBean->degreeZ;
     bean->scale = mTransformBean->scale;
+    bean->lookAtCenterZ = mTransformBean->lookAtCenterZ;
     GLboolean result = mTouch->onTouch(bean, action, pointerCount, x1, y1, x2, y2);
     limit(bean);
     mTransformBean->fov = bean->fov;
@@ -76,6 +81,7 @@ GLboolean Transform::onTouch(GLuint action, GLuint pointerCount,
     mTransformBean->degreeY = bean->degreeY;
     mTransformBean->degreeZ = bean->degreeZ;
     mTransformBean->scale = bean->scale;
+    mTransformBean->lookAtCenterZ = bean->lookAtCenterZ;
     delete bean;
     return result;
 }
@@ -86,12 +92,16 @@ void Transform::onSensor(GLfloat x, GLfloat y, GLfloat z, GLuint64 timestamp) {
     bean->degreeX = mTransformBean->degreeX;
     bean->degreeY = mTransformBean->degreeY;
     bean->degreeZ = mTransformBean->degreeZ;
+    bean->scale = mTransformBean->scale;
+    bean->lookAtCenterZ = mTransformBean->lookAtCenterZ;
     mSensor->onSensor(bean, x, y, z, timestamp);
     limit(bean);
     mTransformBean->fov = bean->fov;
     mTransformBean->degreeX = bean->degreeX;
     mTransformBean->degreeY = bean->degreeY;
     mTransformBean->degreeZ = bean->degreeZ;
+    mTransformBean->scale = bean->scale;
+    mTransformBean->lookAtCenterZ = bean->lookAtCenterZ;
     delete bean;
 }
 
@@ -99,6 +109,7 @@ void Transform::reset() {
     mRegion->reset();
     mTransformBean->fov = mRegion->fov->value;
     mTransformBean->scale = mRegion->scale->value;
+    mTransformBean->lookAtCenterZ = mRegion->lookAtCenterZ->value;
     mTransformBean->degreeX = mRegion->degreeX->value;
     mTransformBean->degreeY = mRegion->degreeY->value;
     mTransformBean->degreeZ = mRegion->degreeZ->value;

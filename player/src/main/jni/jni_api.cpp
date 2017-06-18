@@ -72,8 +72,8 @@ void *thread_run_start(void *arg) {
     LOGI("[jni_api]anim start");
 //    mBean->sleep(100);
     mpPause();
-    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1);
-    mBean->set(mBean->getTransformBean(), -90, 90, 0, FOV_ASTEROID, 1);
+    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1, 0);
+    mBean->set(mBean->getTransformBean(), -90, 90, 0, FOV_ASTEROID, 1, 0);
     during = 3000;
     mBean->anim(mBean->getTransformBean(), toTransformBean, during);
     mpStart();
@@ -115,7 +115,7 @@ void switchModeAnim() {
     }
     bExitThread = GL_FALSE;
 
-    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1);
+    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1, 0);
     during = 3000;
 
     pthread_create(&pThreadForCircle, NULL, thread_run_start, NULL);

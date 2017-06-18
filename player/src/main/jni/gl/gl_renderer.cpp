@@ -223,11 +223,11 @@ GLboolean GLRenderer::onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint l
         LOGI("[Picture:onSettingsChanged]mShowMode is changed, cur=%d, last=%d", last_sm,
              mSettingsBean->mShowMode);
 
-        if (mSettingsBean->mShowMode == SM_SPHERE) {
-            pBeanProcess->pMatrix->lookAt(0, 0, 2.5f, 0, 0, -1, 0, 1, 0);
-        } else {
-            pBeanProcess->pMatrix->lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
-        }
+//        if (mSettingsBean->mShowMode == SM_SPHERE) {
+//            pBeanProcess->pMatrix->lookAt(0, 0, 2.5f, 0, 0, -1, 0, 1, 0);
+//        } else {
+//            pBeanProcess->pMatrix->lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
+//        }
         switchMode(last_sm, mSettingsBean->mShowMode);
         result = GL_TRUE;
     }

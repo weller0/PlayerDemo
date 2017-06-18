@@ -1,11 +1,10 @@
 #include "bean/bean.h"
-#include "bean_base.h"
 
 Bean::Bean(SettingsBean bean) {
     mSettingsBean = new SettingsBean();
     mTransformBean = new TransformBean();
 
-    setTransformBean(0, 0, 0, FOV_DEFAULT, 1);
+    setTransformBean(0, 0, 0, FOV_DEFAULT, 1, 0);
     setSettingsBean(bean);
 }
 
@@ -80,12 +79,16 @@ void Bean::setTransformBean(TransformBean bean) {
     if (mTransformBean->scale != bean.scale) {
         mTransformBean->scale = bean.scale;
     }
+    if (mTransformBean->lookAtCenterZ != bean.lookAtCenterZ) {
+        mTransformBean->lookAtCenterZ = bean.lookAtCenterZ;
+    }
     LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f, scale=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov, mTransformBean->scale);
 }
 
-void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLfloat scale) {
+void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLfloat scale,
+                            GLfloat lookAtCenterZ) {
     LOGI("[bean:setTransformBean]last bean degree(%f, %f, %f), zoom=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
          mTransformBean->degreeZ, mTransformBean->fov);
@@ -104,6 +107,9 @@ void Bean::setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLf
     }
     if (mTransformBean->scale != scale) {
         mTransformBean->scale = scale;
+    }
+    if (mTransformBean->lookAtCenterZ != lookAtCenterZ) {
+        mTransformBean->lookAtCenterZ = lookAtCenterZ;
     }
     LOGI("[bean:setTransformBean]curr bean degree(%f, %f, %f), zoom=%f, scale=%f",
          mTransformBean->degreeX, mTransformBean->degreeY,
@@ -129,6 +135,7 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
     GLfloat midStepY = (to->degreeY - from->degreeY) / stepCount;
     GLfloat midStepZ = (to->degreeZ - from->degreeZ) / stepCount;
     GLfloat midStepFov = (to->fov - from->fov) / stepCount;
+    GLfloat midStepCenterZ = (to->lookAtCenterZ - from->lookAtCenterZ) / stepCount;
 
     // 单帧变化值
     GLfloat stepScale = 0;
@@ -136,6 +143,7 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
     GLfloat stepY = 0;
     GLfloat stepZ = 0;
     GLfloat stepFov = 0;
+    GLfloat stepCenterZ = 0;
 
     // 单帧变化值的加速度
     // 加速-匀速-减速
@@ -145,6 +153,7 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
     GLfloat aY = midStepY / startCount;
     GLfloat aZ = midStepZ / startCount;
     GLfloat aFov = midStepFov / startCount;
+    GLfloat aCenterZ = midStepCenterZ / startCount;
 
     for (int i = 0; i < startCount; i++) {
         stepScale += aScale;
@@ -152,22 +161,25 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
         stepY += aY;
         stepZ += aZ;
         stepFov += aFov;
+        stepCenterZ += aCenterZ;
 
-        from->fov       += stepFov;
-        from->scale     += stepScale;
-        from->degreeX   += stepX;
-        from->degreeY   += stepY;
-        from->degreeZ   += stepZ;
+        from->fov += stepFov;
+        from->scale += stepScale;
+        from->degreeX += stepX;
+        from->degreeY += stepY;
+        from->degreeZ += stepZ;
+        from->lookAtCenterZ += stepCenterZ;
         sleep(timeBetweenFrame);
     }
 
     // 2 匀速
     for (int i = 0; i < midCount; i++) {
-        from->fov       += stepFov;
-        from->scale     += stepScale;
-        from->degreeX   += stepX;
-        from->degreeY   += stepY;
-        from->degreeZ   += stepZ;
+        from->fov += stepFov;
+        from->scale += stepScale;
+        from->degreeX += stepX;
+        from->degreeY += stepY;
+        from->degreeZ += stepZ;
+        from->lookAtCenterZ += stepCenterZ;
         sleep(timeBetweenFrame);
     }
 
@@ -177,20 +189,22 @@ void Bean::anim(TransformBean *from, TransformBean *to, GLuint during) {
     aY = stepY * stepY / (to->degreeY - from->degreeY) / 2;
     aZ = stepZ * stepZ / (to->degreeZ - from->degreeZ) / 2;
     aFov = stepFov * stepFov / (to->fov - from->fov) / 2;
+    aCenterZ = stepCenterZ * stepCenterZ / (to->lookAtCenterZ - from->lookAtCenterZ) / 2;
 
-    while(  fabsf(stepFov) > 0.01 || fabsf(stepScale) > 0.01 ||
-            fabsf(stepX) > 0.01 || fabsf(stepY) > 0.01 || fabsf(stepZ) > 0.01) {
+    while (fabsf(stepFov) > 0.01 || fabsf(stepScale) > 0.01 ||
+           fabsf(stepX) > 0.01 || fabsf(stepY) > 0.01 || fabsf(stepZ) > 0.01) {
         stepScale -= aScale;
         stepX -= aX;
         stepY -= aY;
         stepZ -= aZ;
         stepFov -= aFov;
 
-        from->fov       += stepFov;
-        from->scale     += stepScale;
-        from->degreeX   += stepX;
-        from->degreeY   += stepY;
-        from->degreeZ   += stepZ;
+        from->fov += stepFov;
+        from->scale += stepScale;
+        from->degreeX += stepX;
+        from->degreeY += stepY;
+        from->degreeZ += stepZ;
+        from->lookAtCenterZ += stepCenterZ;
         sleep(timeBetweenFrame);
     }
 }
@@ -209,10 +223,12 @@ void Bean::sleep(GLuint ms) {
     pthread_cond_timedwait(&cond, &mutex, &outtime);
 }
 
-void Bean::set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale) {
-    if(x != -1) bean->degreeX = x;
-    if(y != -1) bean->degreeY = y;
-    if(z != -1) bean->degreeZ = z;
-    if(fov != -1) bean->fov = fov;
-    if(scale != -1) bean->scale = scale;
+void Bean::set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale,
+               GLfloat centerZ) {
+    if (x != -1) bean->degreeX = x;
+    if (y != -1) bean->degreeY = y;
+    if (z != -1) bean->degreeZ = z;
+    if (fov != -1) bean->fov = fov;
+    if (scale != -1) bean->scale = scale;
+    if (scale != -1) bean->lookAtCenterZ = centerZ;
 }

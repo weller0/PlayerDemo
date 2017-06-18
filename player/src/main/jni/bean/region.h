@@ -23,6 +23,7 @@ public:
     _Region *degreeZ;
     _Region *scale;
     _Region *fov;
+    _Region *lookAtCenterZ;
 
     Region();
 
@@ -38,6 +39,8 @@ public:
 
     void setDefaultScale(GLfloat min, GLfloat max, GLfloat def);
 
+    void setDefaultCenterZ(GLfloat min, GLfloat max, GLfloat def);
+
     void limit(TransformBean *bean);
 
     void reset();
@@ -48,6 +51,7 @@ private:
     void setDegreeY(GLfloat y);
     void setDegreeZ(GLfloat z);
     void setScale(GLfloat s);
+    void setCenterZ(GLfloat z);
 };
 
 #endif //REGION_H

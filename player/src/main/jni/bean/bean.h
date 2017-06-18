@@ -19,7 +19,8 @@ public:
 
     void setTransformBean(TransformBean bean);
 
-    void setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLfloat scale);
+    void setTransformBean(GLfloat rx, GLfloat ry, GLfloat rz, GLfloat fov, GLfloat scale,
+                          GLfloat lookAtCenterZ);
 
     SettingsBean *getSettingsBean();
 
@@ -29,7 +30,8 @@ public:
 
     void sleep(GLuint ms);
 
-    void set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale);
+    void set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale,
+             GLfloat centerZ);
 
 private:
     SettingsBean *mSettingsBean;

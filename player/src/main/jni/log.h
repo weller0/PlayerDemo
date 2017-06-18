@@ -6,7 +6,7 @@
 #include <jni.h>
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "VR_Player_Jni", __VA_ARGS__);
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, "VR_Player_Jni", __VA_ARGS__);
+#define LOGD(...)// __android_log_print(ANDROID_LOG_DEBUG, "VR_Player_Jni", __VA_ARGS__);
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "VR_Player_Jni", __VA_ARGS__);
 /*
 void jniThrowException(JNIEnv* env, const char* className, const char* msg) {

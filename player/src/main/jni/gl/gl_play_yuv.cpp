@@ -186,7 +186,7 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
                                          (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
                                          0.1,
                                          100);
-            if(mSettingsBean->mShowMode != SM_SPHERE) {
+            if (mSettingsBean->mShowMode != SM_SPHERE) {
                 GLfloat fov_2 = glBean->pTransformBean->fov / 2.0f;
                 GLfloat fov2_a = fov_2 * (GLfloat) (M_PI / 180.0f);
                 GLfloat h = 0;
@@ -200,6 +200,9 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
                                    1);
                 }
                 glBean->pMatrix->lookAt(0, 0, h, 0, 0, -1, 0, 1, 0);
+            } else {
+                glBean->pMatrix->lookAt(0, 0, glBean->pTransformBean->lookAtCenterZ,
+                                        0, 0, -1, 0, 1, 0);
             }
             glBean->pMatrix->setIdentity();
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
