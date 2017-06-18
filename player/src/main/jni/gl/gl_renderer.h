@@ -167,6 +167,11 @@ public:
 
     GLboolean onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint last_cs);
 
+    void (*callbackFun)(GLuint, GLuint);
+    void switchMode(GLuint lastMode, GLuint currMode);
+
+    void setListener(void (*cb)(GLuint, GLuint));
+
 protected:
     GLBean *pBeanProcess;
     GLuint mWindowWidth;

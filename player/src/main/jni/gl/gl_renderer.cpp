@@ -228,6 +228,7 @@ GLboolean GLRenderer::onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint l
         } else {
             pBeanProcess->pMatrix->lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
         }
+        switchMode(last_sm, mSettingsBean->mShowMode);
         result = GL_TRUE;
     }
     if (last_rr != mSettingsBean->mResolutionRatio) {
@@ -239,6 +240,18 @@ GLboolean GLRenderer::onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint l
              mSettingsBean->mCtrlStyle);
     }
     return result;
+}
+
+void GLRenderer::setListener(void (*cb)(GLuint, GLuint)) {
+    callbackFun = cb;
+}
+
+void onModeChanged(void (*p)(GLuint, GLuint), GLuint last, GLuint curr) {
+    (*p)(last, curr);
+}
+
+void GLRenderer::switchMode(GLuint lastMode, GLuint currMode) {
+    onModeChanged(callbackFun, lastMode, currMode);
 }
 
 void GLRenderer::updateBuffer(GLBean *glBean) {

@@ -121,6 +121,10 @@ void switchModeAnim() {
     pthread_create(&pThreadForCircle, NULL, thread_run_start, NULL);
 }
 
+void onModeChanged(GLuint last, GLuint curr) {
+    LOGI("[jni_api]onModeChanged last=%d, curr=%d", last, curr);
+}
+
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
     SettingsBean settingsBean;
     settingsBean.isUseBitmap = (GLboolean) env->CallBooleanMethod(bean, midIsUseBitmap);
@@ -202,6 +206,7 @@ void initApi(JNIEnv *env, jobject obj, jobject bean) {
     } else {
         pGLDisplay = new PlayYuv(mBean->getTransformBean(), mBean->getSettingsBean());
     }
+    pGLDisplay->setListener(&onModeChanged);
 }
 
 void releaseApi(JNIEnv *env, jobject obj) {
