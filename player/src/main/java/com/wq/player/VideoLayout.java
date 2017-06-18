@@ -138,9 +138,9 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     }
 
     public void setMode(int sm, int rr, int cs) {
-        if(cs == SettingsBean.CS_SENSOR){
+        if (cs == SettingsBean.CS_SENSOR) {
             mSensorCtrl.registerListener();
-        } else{
+        } else {
             mSensorCtrl.unRegisterListener();
         }
         mLeftSurfaceView.setMode(sm, rr, cs);
@@ -180,7 +180,7 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
     }
 
     private void setShowState(int sm) {
-        if(mShowState != ShowState.NoLicence) {
+        if (mShowState != ShowState.NoLicence) {
             setShowState(ShowState.Single);
 //            switch (sm) {
 //                case SettingsBean.SM_ORIGINAL:
@@ -233,7 +233,7 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         release();
     }
 
-    public FrameLayout getNoLicenceLayout(){
+    public FrameLayout getNoLicenceLayout() {
         return mNoLicenceLayout;
     }
 
@@ -260,13 +260,8 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         if (mPlayerListener != null) mPlayerListener.updatePlayingProgress(time);
     }
 
-    boolean isFirst = true;
     @Override
     public void updateBufferProgress(int percent) {
-        if(isFirst && percent > 0){
-            isFirst = false;
-            mLeftSurfaceView.startPlayAnim();
-        }
         if (mPlayerListener != null) mPlayerListener.updateBufferProgress(percent);
     }
 
@@ -298,11 +293,20 @@ public class VideoLayout extends LinearLayout implements PlayManager.Listener, V
         setPlayState(PlayState.Prepared);
         play();
         refreshFrame();
+        mFrameCount = 0;
         if (mPlayerListener != null) mPlayerListener.onPrepareFinish();
     }
 
+    int mFrameCount = 0;
+
     @Override
     public void onFrameUpdate() {
+        if (mFrameCount == 2) {
+            mFrameCount++;
+            mLeftSurfaceView.startPlayAnim();
+        } else if (mFrameCount < 2) {
+            mFrameCount++;
+        }
         mLeftSurfaceView.updateFrameData();
         if (mPlayerListener != null) mPlayerListener.onFrameUpdate();
     }

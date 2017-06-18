@@ -34,7 +34,7 @@ public class NdkPicLeft {
     }
 
     public void startPlayAnim() {
-        //nativeStartPlayAnim();
+        nativeStartPlayAnim();
     }
 
     public boolean onTouch(int action, int pointCount, float x1, float y1, float x2, float y2) {
