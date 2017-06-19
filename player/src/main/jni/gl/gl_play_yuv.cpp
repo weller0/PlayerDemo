@@ -149,61 +149,13 @@ void PlayYuv::drawForYUV(GLBean *glBean) {
         checkGLError("draw glBindVertexArray +");
 
         // 投影、Camera、变换赋值
-//        glBean->pMatrix->perspective(glBean->pTransformBean->fov,
-//                                     (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
-//                                     0.1,
-//                                     100);
-//        glBean->pMatrix->setIdentity();
         if (glBean->pTransformBean != NULL) {
-//            switch (mSettingsBean->mShowMode) {
-//                case SM_NORMAL:
-//                    glBean->pMatrix->scale(glBean->pTransformBean->scale,
-//                                           glBean->pTransformBean->scale,
-//                                           1);
-//                    break;
-//                case SM_ASTEROID:
-//                    GLfloat fov = 140;
-//                    glBean->pMatrix->perspective(fov,
-//                                                 (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
-//                                                 0.1,
-//                                                 100);
-//                    GLfloat fov_2 = fov / 2.0f;
-//                    GLfloat fov2_a = fov_2 * (GLfloat) (M_PI / 180.0f);
-//                    GLfloat h = 0;
-//                    if (fov_2 <= 45.0) {
-//                        h = (GLfloat) (-1 * sin(M_PI_4 - fov2_a) / sin(fov2_a));
-//                    } else if (fov_2 > 45.0 && fov_2 <= 90.0) {
-//                        h = (GLfloat) (M_SQRT2 * sin(fov2_a - M_PI_4));
-//                    } else if (fov_2 > 90.0 && fov_2 <= 180.0) {
-//                        h = (GLfloat) (sin(M_PI - fov2_a) +
-//                                       sin(M_PI - fov2_a) * tan(M_PI - fov2_a) -
-//                                       1);
-//                    }
-//                    glBean->pMatrix->lookAt(0, 0, h, 0, 0, -1, 0, 1, 0);
-//                    break;
-//            }
             glBean->pMatrix->perspective(glBean->pTransformBean->fov,
                                          (GLfloat) mWindowWidth / (GLfloat) mWindowHeight,
                                          0.1,
                                          100);
-            if (mSettingsBean->mShowMode != SM_SPHERE) {
-                GLfloat fov_2 = glBean->pTransformBean->fov / 2.0f;
-                GLfloat fov2_a = fov_2 * (GLfloat) (M_PI / 180.0f);
-                GLfloat h = 0;
-                if (fov_2 <= 45.0) {
-                    h = (GLfloat) (-1 * sin(M_PI_4 - fov2_a) / sin(fov2_a));
-                } else if (fov_2 > 45.0 && fov_2 <= 90.0) {
-                    h = (GLfloat) (M_SQRT2 * sin(fov2_a - M_PI_4));
-                } else if (fov_2 > 90.0 && fov_2 <= 180.0) {
-                    h = (GLfloat) (sin(M_PI - fov2_a) +
-                                   sin(M_PI - fov2_a) * tan(M_PI - fov2_a) -
-                                   1);
-                }
-                glBean->pMatrix->lookAt(0, 0, h, 0, 0, -1, 0, 1, 0);
-            } else {
-                glBean->pMatrix->lookAt(0, 0, glBean->pTransformBean->lookAtCenterZ,
-                                        0, 0, -1, 0, 1, 0);
-            }
+            glBean->pMatrix->lookAt(0, 0, glBean->pTransformBean->lookAtCenterZ,
+                                    0, 0, -1, 0, 1, 0);
             glBean->pMatrix->setIdentity();
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeX, 0, 1, 0);
             glBean->pMatrix->rotate(glBean->pTransformBean->degreeY, 1, 0, 0);

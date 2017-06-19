@@ -53,10 +53,12 @@ GLboolean Touch::onTouch(TransformBean *bean, GLuint action, GLuint pointerCount
         case ACTION_CANCEL:
         case ACTION_UP:
         case ACTION_POINTER_UP: {
-            GLuint64 tt = getCurrentTime();
-            GLfloat vx = (x1 - mStartPoint->x) * 1000.0f / (tt - mPressTime);
-            GLfloat vy = (y1 - mStartPoint->y) * 1000.0f / (tt - mPressTime);
-            fling(-vx, vy);
+            if(mMode == MODE_DRAG) {
+                GLuint64 tt = getCurrentTime();
+                GLfloat vx = (x1 - mStartPoint->x) * 1000.0f / (tt - mPressTime);
+                GLfloat vy = (y1 - mStartPoint->y) * 1000.0f / (tt - mPressTime);
+                fling(-vx, vy);
+            }
             mMode = MODE_NORMAL;
             break;
         }
@@ -83,6 +85,7 @@ void Touch::setDrag(TransformBean *bean, GLfloat x, GLfloat y, GLuint time) {
     dy = TO_DEGREES(dy * time / 13000.0) * sinf(TO_RADIANS(bean->fov));
     bean->degreeX -= dx;
     bean->degreeY -= dy;
+    LOGE("[touch:setZoom]bean->degreeX=%f, bean->degreeY->fov=%f", bean->degreeX, bean->degreeY);
 }
 
 GLfloat scaleMin = 0.6;
@@ -107,6 +110,7 @@ void Touch::setZoom(TransformBean *bean, GLuint pointerCount,
     mDistance = dis;
     bean->fov -= delta;
 //    bean->scale += delta;
+    LOGE("[touch:setZoom]delta=%f, bean->fov=%f", delta, bean->fov);
 }
 
 void Touch::distance(GLfloat *dis, GLuint pointerCount, GLfloat x1, GLfloat y1, GLfloat x2,
@@ -193,6 +197,7 @@ void Touch::fling(GLfloat vx, GLfloat vy) {
 }
 
 void Touch::anim() {
+    LOGI("[touch:anim]fling");
     if(pThreadForAnim != 0) {
         pthread_detach(pThreadForAnim);
         pThreadForAnim = 0;

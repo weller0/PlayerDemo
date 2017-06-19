@@ -2,6 +2,7 @@
 #define BEAN_BASE_H
 
 #include <GLES3/gl3.h>
+#include <math.h>
 
 #define TO_DEGREES(a)       (a) * 180 / M_PI
 #define TO_RADIANS(a)       (a) / 180 * M_PI
@@ -48,6 +49,22 @@ typedef struct {
     GLfloat degreeZ;
     GLfloat fov;
     GLfloat lookAtCenterZ;
+
+    void autoChangeCenterZ() {
+        GLfloat fov_2 = fov / 2.0f;
+        GLfloat fov2_a = fov_2 * (GLfloat) (M_PI / 180.0f);
+        GLfloat h = 0;
+        if (fov_2 <= 45.0) {
+            h = (GLfloat) (-1 * sin(M_PI_4 - fov2_a) / sin(fov2_a));
+        } else if (fov_2 > 45.0 && fov_2 <= 90.0) {
+            h = (GLfloat) (M_SQRT2 * sin(fov2_a - M_PI_4));
+        } else if (fov_2 > 90.0 && fov_2 <= 180.0) {
+            h = (GLfloat) (sin(M_PI - fov2_a) +
+                           sin(M_PI - fov2_a) * tan(M_PI - fov2_a) -
+                           1);
+        }
+        lookAtCenterZ = h;
+    }
 } TransformBean;
 
 typedef struct {

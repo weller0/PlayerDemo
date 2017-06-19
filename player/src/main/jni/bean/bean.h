@@ -26,6 +26,8 @@ public:
 
     TransformBean *getTransformBean();
 
+    TransformBean *getNextTransformBean();
+
     void anim(TransformBean *from, TransformBean *to, GLuint during);
 
     void sleep(GLuint ms);
@@ -33,9 +35,12 @@ public:
     void set(TransformBean *bean, GLfloat x, GLfloat y, GLfloat z, GLfloat fov, GLfloat scale,
              GLfloat centerZ);
 
+    void set(TransformBean *from, TransformBean *to);
+
 private:
     SettingsBean *mSettingsBean;
     TransformBean *mTransformBean;
+    TransformBean *mNextTransformBean;
 
     struct timeval now;
     struct timespec outtime;

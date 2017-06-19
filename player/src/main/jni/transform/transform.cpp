@@ -1,10 +1,11 @@
 #include <bean/bean_base.h>
 #include "transform/transform.h"
 
-Transform::Transform(TransformBean *transformBean, SettingsBean *settingsBean) {
-    mTransformBean = transformBean;
+Transform::Transform(TransformBean *curr, TransformBean *next, SettingsBean *settingsBean) {
+    mTransformBean = curr;
+    mNextTransformBean = next;
     mSettingsBean = settingsBean;
-    mTouch = new Touch(transformBean, settingsBean);
+    mTouch = new Touch(curr, settingsBean);
     mSensor = new Sensor(settingsBean);
     mRegion = new Region();
     setDefaultRegion(mSettingsBean->mShowMode);
@@ -63,6 +64,9 @@ void Transform::setDefaultRegion(GLuint sm) {
 
 void Transform::limit(TransformBean *transformBean) {
     mRegion->limit(transformBean);
+    if(mSettingsBean->mShowMode != SM_SPHERE){
+        transformBean->autoChangeCenterZ();
+    }
 }
 
 GLboolean Transform::onTouch(GLuint action, GLuint pointerCount,
@@ -106,13 +110,28 @@ void Transform::onSensor(GLfloat x, GLfloat y, GLfloat z, GLuint64 timestamp) {
 }
 
 void Transform::reset() {
+    reset(GL_TRUE);
+}
+
+void Transform::reset(GLboolean anim) {
     mRegion->reset();
-    mTransformBean->fov = mRegion->fov->value;
-    mTransformBean->scale = mRegion->scale->value;
-    mTransformBean->lookAtCenterZ = mRegion->lookAtCenterZ->value;
-    mTransformBean->degreeX = mRegion->degreeX->value;
-    mTransformBean->degreeY = mRegion->degreeY->value;
-    mTransformBean->degreeZ = mRegion->degreeZ->value;
+    if(anim){
+        mNextTransformBean->fov = mRegion->fov->value;
+        mNextTransformBean->scale = mRegion->scale->value;
+        mNextTransformBean->lookAtCenterZ = mRegion->lookAtCenterZ->value;
+        mNextTransformBean->degreeX = mRegion->degreeX->value;
+        mNextTransformBean->degreeY = mRegion->degreeY->value;
+        mNextTransformBean->degreeZ = mRegion->degreeZ->value;
+    } else {
+        mTransformBean->fov = mRegion->fov->value;
+        mTransformBean->scale = mRegion->scale->value;
+        mTransformBean->lookAtCenterZ = mRegion->lookAtCenterZ->value;
+        mTransformBean->degreeX = mRegion->degreeX->value;
+        mTransformBean->degreeY = mRegion->degreeY->value;
+        mTransformBean->degreeZ = mRegion->degreeZ->value;
+    }
+//    limit(mTransformBean);
+//    limit(mNextTransformBean);
 }
 
 GLboolean Transform::onSettingsChanged(GLuint last_sm, GLuint last_rr, GLuint last_cs) {

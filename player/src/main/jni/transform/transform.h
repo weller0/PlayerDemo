@@ -12,7 +12,7 @@
 
 class Transform {
 public:
-    Transform(TransformBean *transformBean, SettingsBean *settingsBean);
+    Transform(TransformBean *curr, TransformBean *next, SettingsBean *settingsBean);
 
     ~Transform();
 
@@ -25,12 +25,15 @@ public:
 
     void reset();
 
+    void reset(GLboolean anim);
+
     void setDefaultRegion(GLuint sm);
 
     void limit(TransformBean *transformBean);
 
 private:
     TransformBean *mTransformBean;
+    TransformBean *mNextTransformBean;
     SettingsBean *mSettingsBean;
     Region *mRegion;
     Touch *mTouch;

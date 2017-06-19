@@ -70,12 +70,10 @@ void mpStart() {
 
 void *thread_run_start(void *arg) {
     LOGI("[jni_api]anim start");
-//    mBean->sleep(100);
     mpPause();
-    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1, 0);
-    mBean->set(mBean->getTransformBean(), -90, 90, 0, FOV_ASTEROID, 1, 0);
     during = 3000;
-    mBean->anim(mBean->getTransformBean(), toTransformBean, during);
+    mBean->anim(mBean->getTransformBean(), mBean->getNextTransformBean(), during);
+    mBean->set(mBean->getTransformBean(), mBean->getNextTransformBean());
     mpStart();
     bExitThread = JNI_TRUE;
     pthread_kill(pThreadForCircle, 0);
@@ -98,13 +96,16 @@ void startPlayAnim() {
 }
 
 void *thread_run_switch_mode(void *arg) {
-    LOGI("[jni_api]anim start");
-    mBean->anim(mBean->getTransformBean(), toTransformBean, during);
+    LOGI("[jni_api]switch anim start");
+    mpPause();
+    during = 1500;
+    mBean->anim(mBean->getTransformBean(), mBean->getNextTransformBean(), during);
+    mBean->set(mBean->getTransformBean(), mBean->getNextTransformBean());
     mpStart();
     bExitThread = JNI_TRUE;
     pthread_kill(pThreadForCircle, 0);
 
-    LOGI("[jni_api]anim end");
+    LOGI("[jni_api]switch anim end");
     return NULL;
 }
 
@@ -115,14 +116,12 @@ void switchModeAnim() {
     }
     bExitThread = GL_FALSE;
 
-    mBean->set(toTransformBean, 0, 0, 0, FOV_DEFAULT, 1, 0);
-    during = 3000;
-
-    pthread_create(&pThreadForCircle, NULL, thread_run_start, NULL);
+    pthread_create(&pThreadForCircle, NULL, thread_run_switch_mode, NULL);
 }
 
 void onModeChanged(GLuint last, GLuint curr) {
     LOGI("[jni_api]onModeChanged last=%d, curr=%d", last, curr);
+    switchModeAnim();
 }
 
 SettingsBean cpp2JavaForSettingsBean(JNIEnv *env, jobject bean) {
@@ -187,6 +186,7 @@ void setSettingsBean(JNIEnv *env, jobject obj, jobject bean) {
 
 void resetTransform(JNIEnv *env, jobject obj) {
     mTransform->reset();
+    switchModeAnim();
 }
 
 void initApi(JNIEnv *env, jobject obj, jobject bean) {
@@ -200,7 +200,9 @@ void initApi(JNIEnv *env, jobject obj, jobject bean) {
     midAppPath = env->GetMethodID(clsSettingsBean, "getAppPath", "()Ljava/lang/String;");
     mBean = new Bean(cpp2JavaForSettingsBean(env, bean));
     toTransformBean = new TransformBean();
-    mTransform = new Transform(mBean->getTransformBean(), mBean->getSettingsBean());
+    mTransform = new Transform(mBean->getTransformBean(),
+                               mBean->getNextTransformBean(),
+                               mBean->getSettingsBean());
     if (mBean->getSettingsBean()->isUseBitmap) {
         pGLDisplay = new Picture(mBean->getTransformBean(), mBean->getSettingsBean());
     } else {
