@@ -23,12 +23,15 @@ public class PermissionActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_permission);
         isPermission = true;
-        for(String permission:PERMISSIONS){
-            if (ActivityCompat.checkSelfPermission(this, permission) !=
-                    PackageManager.PERMISSION_GRANTED) {
-                requestPermissionForApp();
-                isPermission = false;
-                break;
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            for (String permission : PERMISSIONS) {
+                if (ActivityCompat.checkSelfPermission(this, permission) !=
+                        PackageManager.PERMISSION_GRANTED) {
+                    requestPermissionForApp();
+                    isPermission = false;
+                    break;
+                }
             }
         }
     }
